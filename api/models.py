@@ -48,7 +48,6 @@ class User(models.Model, Type):
     avatar = ImageField(upload_to=f'{MEDIA_ROOT}')
     nickname = CharField(max_length=100, default="")
 
-    login = CharField(max_length=100, unique=True)
     password = TextField()
     token = CharField(max_length=512)
     deleted = BooleanField(default=False)
@@ -86,7 +85,6 @@ class User(models.Model, Type):
         fields = ['name',
                   'surname',
                   'email',
-                  'login',
                   'password',
                   'nickname'
                   ]
@@ -108,7 +106,6 @@ class User(models.Model, Type):
             dict['surname'] = self.surname
             dict['avatar'] = self.avatar.name
             if type == self.PRIVATE:
-                dict['login'] = self.login
                 dict['starredRecipes'] = self.starredRecipes
                 dict['bannedRecipes'] = self.bannedRecipes
                 dict['starredIngredients'] = self.starredIngredients
@@ -123,8 +120,8 @@ class User(models.Model, Type):
         except Exception as e:
             return {'message': str(e), 'status': -1}
 
-    def auth(self, login=None, password=None):
-        if login == self.login and self.validatePassword(password):
+    def auth(self, nickname=None, password=None, email=None):
+        if (nickname == self.nickname or email == self.email) and self.validatePassword(password):
             return {'token': self.token, 'status': 1}
         else:
             return {'message': 'Wrong credentials', 'status': -1}
@@ -136,7 +133,6 @@ class User(models.Model, Type):
             self.nickname = data['nickname']
             self.surname = data['surname']
             self.email = data['email']
-            self.login = data['login']
             self.setPassword(data['password'])
             self.generateToken(data)
             info = {}
@@ -311,7 +307,7 @@ class Recipe(models.Model, Type):
     time = IntegerField()
     image = ImageField(upload_to=f'{STATICFILES_DIRS}/images', default=None)
 
-    calories = IntegerField()
+    calories = IntegerField(default=None)
     proteins = IntegerField(default=None)
     carbs = IntegerField(default=None)
     fats = IntegerField(default=None)
@@ -365,12 +361,14 @@ class Recipe(models.Model, Type):
             self.time = data['time']
             self.category = data['category']
             self.userId = data['userId']
+            self.save()
         except UnknownField as e:
             try:
                 self.calories = data['calories']
                 self.fats = data['fats']
                 self.carbs = data['carbs']
                 self.proteins = data['proteins']
+                self.save()
             except:
                 pass
         except MissFields as e:
@@ -380,9 +378,11 @@ class Recipe(models.Model, Type):
 
     def preDelete(self):
         self.deleted = True
+        self.save()
 
     def setImage(self, image: UploadedFile):
         self.image = image
+        self.save()
 
     def addComment(self, text, user):
         comment = TextMessages()
@@ -393,12 +393,15 @@ class Recipe(models.Model, Type):
         comment.save()
 
         self.comments = self.comments + " " + comment.id
+        self.save()
 
     def likeRecipe(self):
         self.likes += 1
+        self.save()
 
     def dislikeRecipe(self):
         self.likes -= 1
+        self.save()
 
     def editRecipe(self, data):
         fields = ['title',
@@ -420,6 +423,7 @@ class Recipe(models.Model, Type):
                     self.time = data[i]
                 elif i == 'category':
                     self.category = data[i]
+        self.save()
 
 
 class RecipeCategory(models.Model, Type):
@@ -436,12 +440,14 @@ class Chat(models.Model, Type):
             self.attachments = self.attachments + " " + id
         else:
             self.attachments = id
+        self.save()
 
     def addMessage(self, id: int):
         if self.messages != "" or self.messages is not None:
             self.messages = " " + str(id)
         else:
             self.messages = str(id)
+        self.save()
 
 
 class Forum(models.Model, Type):
@@ -451,16 +457,50 @@ class Forum(models.Model, Type):
     messages = TextField()
 
     def addMember(self, id: int):
-        self.members = " " + str(id)
+        try:
+            user = User.objects.get(id=id)
+            usr_forums = user.forums.split()
+            if str(id) not in usr_forums:
+                memebers = self.members.split()
+                memebers.append(str(id))
+                self.members = " ".join(memebers)
+                del usr_forums[usr_forums.index(str(id))]
+                response = {"message": "User id={id} added to forum", "status": 1}
+            else:
+                response = {"message": "User id={id} added to forum", "status": 1}
+        except:
+            response = {"message": "User id={id} not found", "status": -1}
+
+        self.save()
 
     def deleteMember(self, id: int):
-        self.members = "".join(self.members.split(" " + str(id)))
+        try:
+            user = User.objects.get(id=id)
+            usr_forums = user.forums.split()
+            if str(id) in usr_forums:
+                members = self.members.split()
+                del members[members.index(str(id))]
+                self.members = " ".join(members)
+                del usr_forums[usr_forums.index(str(id))]
+                response = {"message": f"User id={id} deleted to forum", "status": 1}
+            else:
+                response = {"message": f"User id={id} deleted to forum", "status": 1}
+        except:
+            response = {"message": f"User id={id} not found", "status": -1}
+        self.save()
+        return response
 
     def addMessage(self, id: int):
-        if self.messages != "" or self.messages is not None:
-            self.messages = " " + str(id)
-        else:
-            self.messages = str(id)
+        try:
+            msg = self.messages.split()
+            message = TextMessage.objects.get(id=id)
+            msg.append(str(message.id))
+            self.messages = " ".join(msg)
+            response = {"message": f"Message added", "status": 1,}
+        except Exception as e:
+            response = {"message": f"Message id={id} not found", "status": -1, "exception": str(e)}
+        self.save()
+        return response
 
 
 class Ingredient(models.Model, Type):
@@ -477,7 +517,7 @@ class Attachments(models.Model, Type):
     file = FileField()
 
 
-class TextMessages(models.Model, Type):
+class TextMessage(models.Model, Type):
     time = DateTimeField()
     text = TextField()
     userId = ForeignKey('User', on_delete=models.PROTECT)

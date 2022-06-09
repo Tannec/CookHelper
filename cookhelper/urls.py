@@ -4,7 +4,7 @@ from django.contrib import admin
 from django.urls import path
 
 from api.views_model.views_user import *
-
+from api.views_model.views_forum import *
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -24,7 +24,13 @@ urlpatterns = [
     path('api/user/post/starred-product/add/', starIngredient),
     path('api/user/post/starred-product/delete/', unstarIngredient),
     path('api/user/post/banned-product/add/', banIngredient),
-    path('api/user/post/banned-product/delete/', unblockIngredient)
+    path('api/user/post/banned-product/delete/', unblockIngredient),
+
+    path('api/forum/post/create/', createForum),
+    path('api/forum/get/', getInfo),
+    path('api/forum/post/add-member/', addMember),
+    path('api/forum/post/delete-member/', deleteMember),
+    path('api/forum/post/message/', addMessage),
 ]
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

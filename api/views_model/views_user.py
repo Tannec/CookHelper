@@ -8,19 +8,23 @@ from api.models import User
 
 
 def authorize(request):
-    login = request.GET.get('login', None)
+    nickname = request.GET.get('nickname', None)
+    email = request.GET.get('email', None)
     password = request.GET.get('password', None)
-    if login is None:
-        return JsonResponse({'message': 'Missed login', 'status': -1})
+    if nickname is None and email is None:
+        return JsonResponse({'message': 'Missed login like nickname or email', 'status': -1})
     if password is None:
         return JsonResponse({'message': 'Missed password', 'status': -1})
     user = None
     try:
-        user = User.objects.get(login=login)
+        if nickname is not None:
+            user = User.objects.get(nickname=nickname)
+        else:
+            user = User.objects.get(email=email)
     except:
         pass
     if user is None:
-        return JsonResponse({'message': f"User with login '{login}' not found", 'status': -1})
+        return JsonResponse({'message': f"User with login data nickname={nickname} or email={email} not found", 'status': -1})
     if user.validatePassword(password):
         response = user.getInfo(1)
         response['token'] = user.token
@@ -253,6 +257,40 @@ def unblockRecipe(request):
                 response = {"message": "Recipe required", "status": -1}
             else:
                 response = user.unblockRecipe(recipe)
+        except Exception as e:
+            response = {"message": "Wrong token", "exception": str(e), "status": -1}
+    return JsonResponse(response)
+
+
+def addForum(request):
+    forum = request.GET.get('forum', None)
+    token = request.GET.get('token', None)
+    if token is None:
+        response = {"message": "Wrong token", "status": -1}
+    else:
+        try:
+            user = User.objects.get(token=token)
+            if forum is None:
+                response = {"message": "Forum required", "status": -1}
+            else:
+                response = user.addForum(forum)
+        except Exception as e:
+            response = {"message": "Wrong token", "exception": str(e), "status": -1}
+    return JsonResponse(response)
+
+
+def deleteForum(request):
+    forum = request.GET.get('forum', None)
+    token = request.GET.get('token', None)
+    if token is None:
+        response = {"message": "Wrong token", "status": -1}
+    else:
+        try:
+            user = User.objects.get(token=token)
+            if forum is None:
+                response = {"message": "Forum required", "status": -1}
+            else:
+                response = user.deleteForum(forum)
         except Exception as e:
             response = {"message": "Wrong token", "exception": str(e), "status": -1}
     return JsonResponse(response)
