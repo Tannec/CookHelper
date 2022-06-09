@@ -53,7 +53,7 @@ class User(models.Model, Type):
     token = CharField(max_length=512)
     deleted = BooleanField(default=False)
     verified = BooleanField(default=False)
-    code = CharField(default="")
+    code = CharField(default="", max_length=100)
 
     fridge = TextField(default="")
     forums = TextField(default="")
