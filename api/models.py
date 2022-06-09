@@ -101,7 +101,7 @@ class User(models.Model, Type):
             dict = {}
             dict['status'] = 1
             dict['name'] = self.name
-            dict['nickaname'] = self.nickname
+            dict['nickname'] = self.nickname
             dict['email'] = self.email
             dict['surname'] = self.surname
             dict['avatar'] = self.avatar.name
