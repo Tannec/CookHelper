@@ -34,5 +34,5 @@ def sendVerificationMail(code=None, email=None):
               "Enter this code in CookHelper to verify your account."
     try:
         return send_mail(email, subject, message)
-    except:
-        return False
+    except Exception as e:
+        return str(e)
