@@ -51,6 +51,7 @@ class User(models.Model, Type):
     password = TextField()
     token = CharField(max_length=512)
     deleted = BooleanField(default=False)
+    verified = BooleanField(default=False)
 
     fridge = TextField(default="")
     forums = TextField(default="")
@@ -124,7 +125,7 @@ class User(models.Model, Type):
         if (nickname == self.nickname or email == self.email) and self.validatePassword(password):
             return {'token': self.token, 'status': 1}
         else:
-            return {'message': 'Wrong credentials', 'status': -1}
+            return {'message': 'Wrong credentials', 'status': -1, 'user': ''}
 
     def register(self, data):
         try:
@@ -142,11 +143,11 @@ class User(models.Model, Type):
             info['message'] = 'Registered'
             return info
         except UnknownField as e:
-            return {'message': str(e), 'field': e.unknownField(), 'status': -1}
+            return {'message': str(e), 'field': e.unknownField(), 'status': -1, 'user': ''}
         except MissFields as e:
-            return {'message': str(e), 'fields': e.missedFields(), 'status': -1}
+            return {'message': str(e), 'fields': e.missedFields(), 'status': -1, 'user': ''}
         except Exception as e:
-            return {'message': str(e), 'status': -1}
+            return {'message': str(e), 'status': -1, 'user': ''}
 
     def preDelete(self):
         if not self.deleted:
@@ -169,6 +170,7 @@ class User(models.Model, Type):
             response = {"message": "Products added", "status": 1}
         except:
             response = {"message": "Wrong product id", "status": -1}
+        response['user'] = ''
         return response
 
     def deleteFromFridge(self, products):
@@ -184,6 +186,7 @@ class User(models.Model, Type):
             response = {"message": "Products deleted", "status": 1}
         except:
             response = {"message": "Wrong product id", "status": -1}
+        response['user'] = ''
         return response
 
     def unblockIngredient(self, i):
@@ -198,6 +201,7 @@ class User(models.Model, Type):
             response = {"message": "Product unblocked", "status": 1}
         except:
             response = {"message": "Wrong product id", "status": -1}
+        response['user'] = ''
         return response
 
     def banIngredient(self, i):
@@ -212,6 +216,7 @@ class User(models.Model, Type):
             response = {"message": "Product banned", "status": 1}
         except:
             response = {"message": "Wrong product id", "status": -1}
+        response['user'] = ''
         return response
 
     def banRecipe(self, recipeId):
@@ -225,6 +230,7 @@ class User(models.Model, Type):
             response = {"message": "Recipe banned", "status": 1}
         except:
             response = {"message": "Wrong recipe id", "status": -1}
+        response['user'] = ''
         return response
 
     def unblockRecipe(self, recipeId):
@@ -238,6 +244,7 @@ class User(models.Model, Type):
             response = {"message": "Recipe unblocked", "status": 1}
         except:
             response = {"message": "Wrong recipe id", "status": -1}
+        response['user'] = ''
         return response
 
     def unstarIngredient(self, products):
@@ -253,6 +260,7 @@ class User(models.Model, Type):
             response = {"message": "Products deleted from starred", "status": 1}
         except:
             response = {"message": "Wrong product id", "status": -1}
+        response['user'] = ''
         return response
 
     def starIngredient(self, i):
@@ -268,6 +276,7 @@ class User(models.Model, Type):
             response = {"message": "Product starred", "status": 1}
         except:
             response = {"message": "Wrong product id", "status": -1}
+        response['user'] = ''
         return response
 
     def starRecipe(self, recipeId):
@@ -282,6 +291,7 @@ class User(models.Model, Type):
             response = {"message": "Recipe starred", "status": 1}
         except:
             response = {"message": "Wrong recipe id", "status": -1}
+        response['user'] = ''
         return response
 
     def unstarRecipe(self, recipeId):
@@ -296,6 +306,7 @@ class User(models.Model, Type):
             response = {"message": "Recipe unblocked", "status": 1}
         except:
             response = {"message": "Wrong recipe id", "status": -1}
+        response['user'] = ''
         return response
 
 
