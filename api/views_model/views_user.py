@@ -372,5 +372,5 @@ def unstarRecipe(request):
             response = {"message": "Wrong token", "exception": str(e), "status": -1, 'user': ''}
     return JsonResponse(response)
 
-def verifyUser(request):
-    code =
+# def verifyUser(request):
+#     code =
