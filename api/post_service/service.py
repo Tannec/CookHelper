@@ -30,4 +30,7 @@ def sendVerificationMail(code=None, email=None):
     message = "Do not reply to this mail.\n" \
               f"Verification code: {code}\n" \
               "Enter this code in CookHelper to verify your account."
-    send_mail(email, subject, message)
+    try:
+        return send_mail(email, subject, message)
+    except:
+        return False

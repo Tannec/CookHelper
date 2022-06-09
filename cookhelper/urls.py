@@ -31,6 +31,8 @@ urlpatterns = [
     path('api/forum/post/add-member/', addMember),
     path('api/forum/post/delete-member/', deleteMember),
     path('api/forum/post/message/', addMessage),
+
+    path('mail/', sendMail)
 ]
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

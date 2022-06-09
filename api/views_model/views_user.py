@@ -8,6 +8,9 @@ from api.post_service.service import sendVerificationMail
 
 from api.models import User
 
+def sendMail(request):
+    state = sendVerificationMail(code="123456", email='artur.231456@gmail.com')
+    return JsonResponse({'message': 'qweqwe', 'status': 1, 'user': f'{state}'})
 
 def authorize(request):
     nickname = request.POST.get('nickname', None)

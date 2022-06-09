@@ -1,5 +1,6 @@
 import time
 import jwt
+from random import choice
 from django.core.files.uploadedfile import UploadedFile
 from django.db import models
 from django.db.models import *
@@ -52,6 +53,7 @@ class User(models.Model, Type):
     token = CharField(max_length=512)
     deleted = BooleanField(default=False)
     verified = BooleanField(default=False)
+    code = CharField(default="")
 
     fridge = TextField(default="")
     forums = TextField(default="")
@@ -70,10 +72,21 @@ class User(models.Model, Type):
 
     def generateToken(self, data: dict):
         data['time'] = round(time.time() * 1000)
-        data['prohodnoyeSlovoComrad'] = self.password
+        data['prohodnoyeSlovoComrade'] = self.password
         tt = jwt.encode(data, SECRET_KEY, algorithm='HS256')
         self.token = tt
         self.save()
+
+    def generateCode(self, length):
+        code = ""
+        for i in range(length):
+            code += str(choice(range(10)))
+        self.code = code
+        self.save()
+        return code
+
+    def verifyCode(self, code):
+        return code == self.code
 
     def validateToken(self, token: str):
         return self.token == token
