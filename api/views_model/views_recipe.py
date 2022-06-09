@@ -7,18 +7,18 @@ from api.models import Recipe, User
 
 
 def createRecipe(request):
-    token = request.GET.get('token', None)
-    title = request.GET.get('title', None)
-    steps = request.GET.get('steps', None)
-    ingredients = request.GET.get('ingredients', None)
-    time = request.GET.get('time', None)
-    category = request.GET.get('category', None)
-    userId = request.GET.get('userId', None)
+    token = request.POST.get('token', None)
+    title = request.POST.get('title', None)
+    steps = request.POST.get('steps', None)
+    ingredients = request.POST.get('ingredients', None)
+    time = request.POST.get('time', None)
+    category = request.POST.get('category', None)
+    userId = request.POST.get('userId', None)
 
-    calories = request.GET.get('calories', None)
-    carbs = request.GET.get('carbs', None)
-    proteins = request.GET.get('proteins', None)
-    fats = request.GET.get('fats', None)
+    calories = request.POST.get('calories', None)
+    carbs = request.POST.get('carbs', None)
+    proteins = request.POST.get('proteins', None)
+    fats = request.POST.get('fats', None)
 
     imageStatus = {'image_status': 1}
     try:
