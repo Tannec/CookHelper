@@ -3,6 +3,8 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import generics
+from api.post_service.service import sendVerificationMail
+
 
 from api.models import User
 
@@ -22,6 +24,8 @@ def authorize(request):
         else:
             user = User.objects.get(email=email)
         if not user.verified:
+            code = user.generateCode()
+            state = sendVerificationMail(code=code, email=user.email)
             return JsonResponse({'message': 'User not verified', 'status': -1, 'user': user.getInfo(0)})
     except:
         pass
@@ -364,3 +368,6 @@ def unstarRecipe(request):
         except Exception as e:
             response = {"message": "Wrong token", "exception": str(e), "status": -1, 'user': ''}
     return JsonResponse(response)
+
+def verifyUser(request):
+    code =

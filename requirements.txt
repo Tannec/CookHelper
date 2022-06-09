@@ -32,3 +32,4 @@ urllib3==1.26.6
 Werkzeug==2.0.1
 psycopg2==2.8.6
 whitenoise==6.2.0
+dotenv==0.0.5
