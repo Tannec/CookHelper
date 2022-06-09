@@ -25,6 +25,7 @@ urlpatterns = [
     path('api/user/post/starred-product/delete/', unstarIngredient),
     path('api/user/post/banned-product/add/', banIngredient),
     path('api/user/post/banned-product/delete/', unblockIngredient),
+    path('api/user/post/verify/', verifyUser),
 
     path('api/forum/post/create/', createForum),
     path('api/forum/get/', getInfo),
@@ -32,7 +33,6 @@ urlpatterns = [
     path('api/forum/post/delete-member/', deleteMember),
     path('api/forum/post/message/', addMessage),
 
-    path('mail/', sendMail)
 ]
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

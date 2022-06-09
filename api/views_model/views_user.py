@@ -12,6 +12,7 @@ def sendMail(request):
     state = sendVerificationMail(code="123456", email='artur.231456@gmail.com')
     return JsonResponse({'message': 'qweqwe', 'status': 1, 'user': f'{state}'})
 
+
 def authorize(request):
     nickname = request.POST.get('nickname', None)
     email = request.POST.get('email', None)
@@ -70,6 +71,8 @@ def register(request):
     response = user.register(request.POST.dict())
     if response['status'] == 1:
         user.save()
+        code = user.generateCode(6)
+        state = sendVerificationMail(code=code, email=user.email)
     return JsonResponse(response)
 
 
@@ -373,5 +376,24 @@ def unstarRecipe(request):
             response = {"message": "Wrong token", "exception": str(e), "status": -1, 'user': {}}
     return JsonResponse(response)
 
-# def verifyUser(request):
-#     code =
+
+def verifyUser(request):
+    code = request.POST.get('code', None)
+    token = request.POST.get('token', None)
+
+    try:
+        if token is None:
+            raise Exception('Token required')
+        if code is None:
+            raise Exception('Code required')
+
+        user = User.objects.get(token=token)
+
+        if user.verifyCode(code):
+            response = {'message': 'Account verified', 'status': 1}
+        else:
+            response = {'message': 'Wrong code', 'status': 1}
+    except Exception as e:
+        response = {'message': str(e), 'status': -1}
+    response['user'] = {}
+    return JsonResponse(response)

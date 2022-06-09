@@ -86,7 +86,9 @@ class User(models.Model, Type):
         return code
 
     def verifyCode(self, code):
-        return code == self.code
+        if code == self.code:
+            self.verified = True
+        return self.verified
 
     def validateToken(self, token: str):
         return self.token == token
@@ -119,6 +121,7 @@ class User(models.Model, Type):
             dict['email'] = self.email
             dict['surname'] = self.surname
             dict['avatar'] = self.avatar.name
+            dict['verified'] = self.verified
             if type == self.PRIVATE:
                 dict['starredRecipes'] = self.starredRecipes
                 dict['bannedRecipes'] = self.bannedRecipes
