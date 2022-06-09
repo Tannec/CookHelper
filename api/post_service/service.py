@@ -3,10 +3,10 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-HOST = 'smtp.gmail.com'
+HOST = 'smtp.yandex.ru'
 PORT = 465
-FROM = 'cookhelper.itl@gmail.com'
-PASSWORD = 'bcadyufotiogfduq'
+FROM = 'HestiaNet@yandex.ru'
+PASSWORD = 'yljnesthciyszjmw'
 
 
 def send_mail(email, subject, text):
