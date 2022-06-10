@@ -3,7 +3,7 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import generics
-from api.post_service.service import sendVerificationMail
+from api.GET_service.service import sendVerificationMail
 
 
 from api.models import User
@@ -14,9 +14,9 @@ def sendMail(request):
 
 
 def authorize(request):
-    nickname = request.POST.get('nickname', None)
-    email = request.POST.get('email', None)
-    password = request.POST.get('password', None)
+    nickname = request.GET.get('nickname', None)
+    email = request.GET.get('email', None)
+    password = request.GET.get('password', None)
     if nickname is None and email is None:
         return JsonResponse({'message': 'Missed login like nickname or email', 'status': -1, 'user': {}})
     if password is None:
@@ -45,9 +45,9 @@ def authorize(request):
 
 
 def changePassword(request):
-    token = request.POST.get('token', None)
-    old_password = request.POST.get('old_password', None)
-    new_password = request.POST.get('new_password', None)
+    token = request.GET.get('token', None)
+    old_password = request.GET.get('old_password', None)
+    new_password = request.GET.get('new_password', None)
     if token is None:
         return JsonResponse({'message': 'Missed token', 'status': -1, 'user': {}})
     if old_password is None:
@@ -116,8 +116,8 @@ def info(request):
 
 
 def delete(request):
-    password = request.POST.get('password', None)
-    token = request.POST.get('token', None)
+    password = request.GET.get('password', None)
+    token = request.GET.get('token', None)
     if token is None:
         response = {"message": "Wrong token", "status": -1, 'user': {}}
         return JsonResponse(response)
@@ -138,8 +138,8 @@ def delete(request):
 
 
 def recover(request):
-    password = request.POST.get('password', None)
-    login = request.POST.get('login', None)
+    password = request.GET.get('password', None)
+    login = request.GET.get('login', None)
     if login is None:
         response = {"message": "Wrong login", "status": -1, 'user': {}}
         return JsonResponse(response)
@@ -161,7 +161,7 @@ def recover(request):
 @csrf_exempt
 def setAvatar(request):
     image = request.FILES['image']
-    token = request.POST.get('token', None)
+    token = request.GET.get('token', None)
     if token is None:
         response = {"message": "Wrong token", "status": -1, 'user': {}}
     else:
@@ -175,8 +175,8 @@ def setAvatar(request):
 
 
 def fillFridge(request):
-    products = request.POST.get('products', None)
-    token = request.POST.get('token', None)
+    products = request.GET.get('products', None)
+    token = request.GET.get('token', None)
     if token is None:
         response = {"message": "Wrong token", "status": -1, 'user': {}}
     else:
@@ -192,8 +192,8 @@ def fillFridge(request):
 
 
 def deleteFromFridge(request):
-    products = request.POST.get('products', None)
-    token = request.POST.get('token', None)
+    products = request.GET.get('products', None)
+    token = request.GET.get('token', None)
     if token is None:
         response = {"message": "Wrong token", "status": -1, 'user': {}}
     else:
@@ -209,8 +209,8 @@ def deleteFromFridge(request):
 
 
 def banIngredient(request):
-    product = request.POST.get('product', None)
-    token = request.POST.get('token', None)
+    product = request.GET.get('product', None)
+    token = request.GET.get('token', None)
     if token is None:
         response = {"message": "Wrong token", "status": -1, 'user': {}}
     else:
@@ -226,8 +226,8 @@ def banIngredient(request):
 
 
 def unblockIngredient(request):
-    product = request.POST.get('product', None)
-    token = request.POST.get('token', None)
+    product = request.GET.get('product', None)
+    token = request.GET.get('token', None)
     if token is None:
         response = {"message": "Wrong token", "status": -1, 'user': {}}
     else:
@@ -243,8 +243,8 @@ def unblockIngredient(request):
 
 
 def banRecipe(request):
-    recipe = request.POST.get('recipe', None)
-    token = request.POST.get('token', None)
+    recipe = request.GET.get('recipe', None)
+    token = request.GET.get('token', None)
     if token is None:
         response = {"message": "Wrong token", "status": -1, 'user': {}}
     else:
@@ -260,8 +260,8 @@ def banRecipe(request):
 
 
 def unblockRecipe(request):
-    recipe = request.POST.get('recipe', None)
-    token = request.POST.get('token', None)
+    recipe = request.GET.get('recipe', None)
+    token = request.GET.get('token', None)
     if token is None:
         response = {"message": "Wrong token", "status": -1, 'user': {}}
     else:
@@ -277,8 +277,8 @@ def unblockRecipe(request):
 
 
 def addForum(request):
-    forum = request.POST.get('forum', None)
-    token = request.POST.get('token', None)
+    forum = request.GET.get('forum', None)
+    token = request.GET.get('token', None)
     if token is None:
         response = {"message": "Wrong token", "status": -1, 'user': {}}
     else:
@@ -294,8 +294,8 @@ def addForum(request):
 
 
 def deleteForum(request):
-    forum = request.POST.get('forum', None)
-    token = request.POST.get('token', None)
+    forum = request.GET.get('forum', None)
+    token = request.GET.get('token', None)
     if token is None:
         response = {"message": "Wrong token", "status": -1, 'user': {}}
     else:
@@ -311,8 +311,8 @@ def deleteForum(request):
 
 
 def starIngredient(request):
-    product = request.POST.get('product', None)
-    token = request.POST.get('token', None)
+    product = request.GET.get('product', None)
+    token = request.GET.get('token', None)
     if token is None:
         response = {"message": "Wrong token", "status": -1, 'user': {}}
     else:
@@ -328,8 +328,8 @@ def starIngredient(request):
 
 
 def unstarIngredient(request):
-    product = request.POST.get('product', None)
-    token = request.POST.get('token', None)
+    product = request.GET.get('product', None)
+    token = request.GET.get('token', None)
     if token is None:
         response = {"message": "Wrong token", "status": -1, 'user': {}}
     else:
@@ -345,8 +345,8 @@ def unstarIngredient(request):
 
 
 def starRecipe(request):
-    recipe = request.POST.get('recipe', None)
-    token = request.POST.get('token', None)
+    recipe = request.GET.get('recipe', None)
+    token = request.GET.get('token', None)
     if token is None:
         response = {"message": "Wrong token", "status": -1, 'user': {}}
     else:
@@ -362,8 +362,8 @@ def starRecipe(request):
 
 
 def unstarRecipe(request):
-    recipe = request.POST.get('recipe', None)
-    token = request.POST.get('token', None)
+    recipe = request.GET.get('recipe', None)
+    token = request.GET.get('token', None)
     if token is None:
         response = {"message": "Wrong token", "status": -1, 'user': {}}
     else:
@@ -379,8 +379,8 @@ def unstarRecipe(request):
 
 
 def verifyUser(request):
-    code = request.POST.get('code', None)
-    token = request.POST.get('token', None)
+    code = request.GET.get('code', None)
+    token = request.GET.get('token', None)
 
     try:
         if token is None:
