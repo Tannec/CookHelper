@@ -150,11 +150,11 @@ class User(models.Model, Type):
     def register(self, data):
         try:
             self.validateData(data)
-            self.name = data['name']
-            self.nickname = data['nickname']
-            self.surname = data['surname']
-            self.email = data['email']
-            self.setPassword(data['password'])
+            self.name = "".join(data['name'].split('"'))
+            self.nickname = "".join(data['nickname'].split('"'))
+            self.surname = "".join(data['surname'].split('"'))
+            self.email = "".join(data['email'].split('"'))
+            self.setPassword("".join(data['password'].split('"')))
             self.generateToken(data)
             info = {}
             info['user'] = self.getInfo(1)

@@ -8,7 +8,6 @@ from rest_framework import generics
 from api.post_service.service import sendVerificationMail
 
 from api.models import User
-from werkzeug.security import generate_password_hash
 
 
 @csrf_exempt
@@ -37,6 +36,8 @@ def authorize(request):
             response = user.getInfo(1)
             response['token'] = user.token
             if not user.verified:
+                code = user.generateCode()
+                s = sendVerificationMail(code=code, email=user.email, name=user.name)
                 return JsonResponse({'message': 'User not verified', 'status': 1, 'user': user.getInfo(0)})
             return JsonResponse({'message': 'Authorized', 'user': response, 'status': 1})
         else:
@@ -398,6 +399,8 @@ def unstarRecipe(request):
 def verifyUser(request):
     code = request.POST.get('code', None)
     token = request.POST.get('token', None)
+
+
 
     try:
         if token is None:
