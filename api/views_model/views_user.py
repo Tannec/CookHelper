@@ -16,28 +16,34 @@ def sendMail(request):
 
 @csrf_exempt
 def authorize(request):
-    data = request.POST.dict()
     login = request.POST.get('login', None)
     password = request.POST.get('password', None)
+    user = None
+
     if login is None:
-        return JsonResponse({'message': f'Missed login (nickname or email) {data}', 'status': -1, 'user': {}})
+        return JsonResponse({'message': f'Missed login (nickname or email)', 'status': -1, 'user': {}})
     if password is None:
         return JsonResponse({'message': 'Missed password', 'status': -1, 'user': {}})
+
     try:
-        try:
-            user = User.objects.get(nickname=login)
-        except:
-            user = User.objects.get(email=login)
-        if not user.verified:
-            return JsonResponse({'message': 'User not verified', 'status': 1, 'user': user.getInfo(0)})
+        user = User.objects.get(nickname=login)
     except:
+        user = None
+    try:
+        if user is None:
+            user = User.objects.get(email=login)
+    except Exception:
         return JsonResponse({'message': f"User not found", 'status': -1, 'user': {}})
-    if user.validatePassword(password):
-        response = user.getInfo(1)
-        response['token'] = user.token
-        return JsonResponse({'message': 'Authorized', 'user': response, 'status': 1})
+
+    if not user.verified:
+        return JsonResponse({'message': 'User not verified', 'status': 1, 'user': user.getInfo(0)})
     else:
-        return JsonResponse({"message": "Wrong credentials", "status": -1, 'user': {}})
+        if user.validatePassword(password):
+            response = user.getInfo(1)
+            response['token'] = user.token
+            return JsonResponse({'message': 'Authorized', 'user': response, 'status': 1})
+        else:
+            return JsonResponse({"message": "Wrong credentials", "status": -1, 'user': {}})
 
 
 @csrf_exempt
