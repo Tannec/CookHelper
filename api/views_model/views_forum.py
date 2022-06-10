@@ -7,8 +7,8 @@ from api.models import Forum, User, TextMessage
 
 
 def addMember(request):
-    forumId = request.GET.get('forum', None)
-    token = request.GET.get('token', None)
+    forumId = request.POST.get('forum', None)
+    token = request.POST.get('token', None)
     if token is None:
         response = {"message": "Wrong token", "status": -1}
     else:
@@ -25,8 +25,8 @@ def addMember(request):
 
 
 def deleteMember(request):
-    forumId = request.GET.get('forum', None)
-    token = request.GET.get('token', None)
+    forumId = request.POST.get('forum', None)
+    token = request.POST.get('token', None)
     if token is None:
         response = {"message": "Wrong token", "status": -1}
     else:
@@ -45,9 +45,9 @@ def deleteMember(request):
 
 
 def addMessage(request):
-    forumId = request.GET.get('forum', None)
-    token = request.GET.get('token', None)
-    textMessage = request.GET.get('message', None)
+    forumId = request.POST.get('forum', None)
+    token = request.POST.get('token', None)
+    textMessage = request.POST.get('message', None)
     try:
         user = User.objects.get(token=token)
         if forumId is None:
@@ -68,8 +68,8 @@ def addMessage(request):
 
 
 def createForum(request):
-    token = request.GET.get('token', None)
-    title = request.GET.get('title', None)
+    token = request.POST.get('token', None)
+    title = request.POST.get('title', None)
     if token is None:
         response = {"message": "Wrong token", "status": -1}
     else:
