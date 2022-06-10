@@ -101,3 +101,11 @@ def getInfo(request):
 def deleteForum(request):
     token = request.POST.get('token', None)
     forumId = request.POST.get('id', None)
+    try:
+        if token is None:
+            raise Exception('Token required')
+        if forumId is None:
+            raise Exception('Forum id required')
+        forum = Forum.objects.get(id=id)
+    except Exception as e:
+        response = {'message': str(e), 'status': -1, 'forum': {}}

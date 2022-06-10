@@ -47,7 +47,7 @@ class User(models.Model, Type):
     surname = CharField(max_length=40)
     email = CharField(max_length=100, unique=True)
     avatar = ImageField(upload_to=f'{MEDIA_ROOT}')
-    nickname = CharField(max_length=100, default="")
+    nickname = CharField(max_length=100, default="", unique=True)
 
     password = TextField()
     token = CharField(max_length=512)
@@ -486,6 +486,7 @@ class Forum(models.Model, Type):
     owner = ForeignKey('User', on_delete=models.PROTECT)
     members = TextField()
     messages = TextField()
+    deleted = BooleanField(default=False)
 
     def addMember(self, id: int):
         try:
@@ -532,6 +533,10 @@ class Forum(models.Model, Type):
             response = {"message": f"Message id={id} not found", "status": -1, "exception": str(e)}
         self.save()
         return response
+
+    def preDelete(self):
+        self.deleted = True
+        self.save()
 
 
 class Ingredient(models.Model, Type):

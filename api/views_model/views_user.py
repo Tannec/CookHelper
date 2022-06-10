@@ -410,7 +410,7 @@ def verifyUser(request):
         if user.verifyCode(code):
             response = {'message': 'Account verified', 'status': 1}
         else:
-            response = {'message': 'Wrong code', 'status': 1}
+            response = {'message': 'Wrong code', 'status': -1}
     except Exception as e:
         response = {'message': str(e), 'status': -1}
     response['user'] = {}
