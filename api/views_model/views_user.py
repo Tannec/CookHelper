@@ -19,13 +19,13 @@ def authorize(request):
     login = request.POST.get('login', None)
     password = request.POST.get('password', None)
     if login is None:
-        return JsonResponse({'message': 'Missed login (nickname or email)', 'status': -1, 'user': {}})
+        return JsonResponse({'message': f'Missed login (nickname or email) {login} {password}', 'status': -1, 'user': {}})
     if password is None:
         return JsonResponse({'message': 'Missed password', 'status': -1, 'user': {}})
     try:
         try:
             user = User.objects.get(nickname=login)
-        finally:
+        except:
             user = User.objects.get(email=login)
         if not user.verified:
             return JsonResponse({'message': 'User not verified', 'status': 1, 'user': user.getInfo(0)})
