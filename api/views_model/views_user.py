@@ -26,8 +26,6 @@ def authorize(request):
         finally:
             user = User.objects.get(email=login)
         if not user.verified:
-            code = user.generateCode()
-            state = sendVerificationMail(code=code, email=user.email)
             return JsonResponse({'message': 'User not verified', 'status': -1, 'user': user.getInfo(0)})
     except:
         return JsonResponse({'message': f"User not found", 'status': -1, 'user': {}})
@@ -392,3 +390,26 @@ def verifyUser(request):
         response = {'message': str(e), 'status': -1}
     response['user'] = {}
     return JsonResponse(response)
+
+
+def verificationCode(request):
+    token = request.GET.get('token', None)
+
+    try:
+        if token is None:
+            raise Exception('Token required')
+
+        user = User.objects.get(token=token)
+        code = user.generateCode()
+
+        if sendVerificationMail(code=code, email=user.email, name=user.name):
+            response = {'message': 'Verification code has been sent', 'status': 1}
+        else:
+            response = {'message': 'Verification code has not been sent', 'status': 1}
+    except Exception as e:
+        response = {'message': str(e), 'status': -1}
+    response['user'] = {}
+    return JsonResponse(response)
+
+
+
