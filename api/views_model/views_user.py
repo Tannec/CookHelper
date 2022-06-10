@@ -422,11 +422,11 @@ def verifyUser(request):
 
 def verificationCode(request):
     token = request.GET.get('token', None)
-
     try:
         if token is None:
             raise Exception('Token required')
 
+        token = "".join(token.split('"'))
         user = User.objects.get(token=token)
         code = user.generateCode()
 
