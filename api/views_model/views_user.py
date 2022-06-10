@@ -16,10 +16,11 @@ def sendMail(request):
 
 @csrf_exempt
 def authorize(request):
+    data = request.POST.dict()
     login = request.POST.get('login', None)
     password = request.POST.get('password', None)
     if login is None:
-        return JsonResponse({'message': f'Missed login (nickname or email) {login} {password}', 'status': -1, 'user': {}})
+        return JsonResponse({'message': f'Missed login (nickname or email) {data}', 'status': -1, 'user': {}})
     if password is None:
         return JsonResponse({'message': 'Missed password', 'status': -1, 'user': {}})
     try:
