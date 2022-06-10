@@ -33,6 +33,7 @@ urlpatterns = [
     path('api/forum/post/add-member/', addMember),
     path('api/forum/post/delete-member/', deleteMember),
     path('api/forum/post/message/', addMessage),
+    path('api/forum/post/delete/', deleteForum)
 
 ]
 
