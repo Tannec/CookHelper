@@ -28,7 +28,7 @@ def authorize(request):
         finally:
             user = User.objects.get(email=login)
         if not user.verified:
-            return JsonResponse({'message': 'User not verified', 'status': -1, 'user': user.getInfo(0)})
+            return JsonResponse({'message': 'User not verified', 'status': 1, 'user': user.getInfo(0)})
     except:
         return JsonResponse({'message': f"User not found", 'status': -1, 'user': {}})
     if user.validatePassword(password):

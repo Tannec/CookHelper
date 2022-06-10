@@ -88,6 +88,7 @@ class User(models.Model, Type):
     def verifyCode(self, code):
         if code == self.code:
             self.verified = True
+            self.save()
         return self.verified
 
     def validateToken(self, token: str):
