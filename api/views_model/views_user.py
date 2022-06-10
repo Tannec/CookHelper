@@ -69,7 +69,7 @@ def changePassword(request):
 @csrf_exempt
 def register(request):
     user = User()
-    response = user.register(request.POST.dict())
+    response = user.register(request.GET.dict())
     if response['status'] == 1:
         user.save()
         code = user.generateCode(6)
