@@ -96,3 +96,6 @@ def getInfo(request):
     except Exception as e:
         response = {"message": "Wrong forum id", "exception": str(e), "status": -1}
     return JsonResponse(response)
+
+
+def deleteForum

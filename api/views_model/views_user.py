@@ -33,7 +33,7 @@ def authorize(request):
         if user is None:
             user = User.objects.get(email=login)
     except Exception:
-        return JsonResponse({'message': f"User not found", 'status': -1, 'user': {}})
+        return JsonResponse({'message': f"User not found lgn={login} psw={password} dt={request.POST.dict()}", 'status': -1, 'user': {}})
 
     if not user.verified:
         return JsonResponse({'message': 'User not verified', 'status': 1, 'user': user.getInfo(0)})
