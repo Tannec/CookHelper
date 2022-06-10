@@ -1,4 +1,6 @@
 import json
+
+from django.db.models import Q
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -29,12 +31,7 @@ def authorize(request):
     password = "".join(login.split('"'))
 
     try:
-        user = User.objects.get(nickname=login)
-    except:
-        user = None
-    try:
-        if user is None:
-            user = User.objects.get(email=login)
+        user = User.objects.get(Q(nickname=login) | Q(email=login))
     except Exception:
         return JsonResponse({'message': f"User not found lgn={login} psw={password} dt={request.POST.dict()}", 'status': -1, 'user': {}})
 
