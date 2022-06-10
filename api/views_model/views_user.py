@@ -25,6 +25,9 @@ def authorize(request):
     if password is None:
         return JsonResponse({'message': 'Missed password', 'status': -1, 'user': {}})
 
+    login = "".join(login.split('"'))
+    password = "".join(login.split('"'))
+
     try:
         user = User.objects.get(nickname=login)
     except:
