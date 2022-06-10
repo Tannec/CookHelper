@@ -8,6 +8,7 @@ from rest_framework import generics
 from api.post_service.service import sendVerificationMail
 
 from api.models import User
+from werkzeug.security import generate_password_hash
 
 
 @csrf_exempt
@@ -28,21 +29,20 @@ def authorize(request):
         return JsonResponse({'message': 'Missed password', 'status': -1, 'user': {}})
 
     login = "".join(login.split('"'))
-    password = "".join(login.split('"'))
+    password = "".join(password.split('"'))
 
     try:
         user = User.objects.get(Q(nickname=login) | Q(email=login))
+        if user.validatePassword(password):
+            response = user.getInfo(1)
+            response['token'] = user.token
+            if not user.verified:
+                return JsonResponse({'message': 'User not verified', 'status': 1, 'user': user.getInfo(0)})
+            return JsonResponse({'message': 'Authorized', 'user': response, 'status': 1})
+        else:
+            return JsonResponse({"message": f"Wrong credentials", "status": -1, 'user': {}})
     except Exception:
-        return JsonResponse({'message': f"User not found lgn={login} psw={password} dt={request.POST.dict()}", 'status': -1, 'user': {}})
-
-    if user.validatePassword(password):
-        response = user.getInfo(1)
-        response['token'] = user.token
-        if not user.verified:
-            return JsonResponse({'message': 'User not verified', 'status': 1, 'user': user.getInfo(0)})
-        return JsonResponse({'message': 'Authorized', 'user': response, 'status': 1})
-    else:
-        return JsonResponse({"message": f"Wrong credentials lgn={login}", "status": -1, 'user': {}})
+        return JsonResponse({'message': f"User not found", 'status': -1, 'user': {}})
 
 
 @csrf_exempt

@@ -63,6 +63,9 @@ class User(models.Model, Type):
     bannedIngredients = TextField(default="")
     ownRecipes = TextField(default="")
 
+    def __str__(self):
+        return "email: " + self.email + " psw: " + self.password + " nick: " + self.nickname
+
     def setPassword(self, password):
         self.password = generate_password_hash(password)
         self.save()
