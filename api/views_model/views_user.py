@@ -8,11 +8,13 @@ from api.post_service.service import sendVerificationMail
 from api.models import User
 
 
+@csrf_exempt
 def sendMail(request):
     state = sendVerificationMail(code="123456", email='artur.231456@gmail.com')
     return JsonResponse({'message': 'qweqwe', 'status': 1, 'user': f'{state}'})
 
 
+@csrf_exempt
 def authorize(request):
     login = request.POST.get('login', None)
     password = request.POST.get('password', None)
@@ -37,6 +39,7 @@ def authorize(request):
         return JsonResponse({"message": "Wrong credentials", "status": -1, 'user': {}})
 
 
+@csrf_exempt
 def changePassword(request):
     token = request.POST.get('token', None)
     old_password = request.POST.get('old_password', None)
@@ -59,6 +62,7 @@ def changePassword(request):
         return JsonResponse({"message": "Wrong old password", "status": -1, 'user': {}})
 
 
+@csrf_exempt
 def register(request):
     user = User()
     response = user.register(request.POST.dict())
@@ -107,6 +111,7 @@ def info(request):
     return JsonResponse(response)
 
 
+@csrf_exempt
 def delete(request):
     password = request.POST.get('password', None)
     token = request.POST.get('token', None)
@@ -129,6 +134,7 @@ def delete(request):
     return JsonResponse(response)
 
 
+@csrf_exempt
 def recover(request):
     password = request.POST.get('password', None)
     login = request.POST.get('login', None)
@@ -150,6 +156,7 @@ def recover(request):
     return JsonResponse(response)
 
 
+@csrf_exempt
 def setAvatar(request):
     image = request.FILES['image']
     token = request.POST.get('token', None)
@@ -165,6 +172,7 @@ def setAvatar(request):
     return JsonResponse(response)
 
 
+@csrf_exempt
 def fillFridge(request):
     products = request.POST.get('products', None)
     token = request.POST.get('token', None)
@@ -182,6 +190,7 @@ def fillFridge(request):
     return JsonResponse(response)
 
 
+@csrf_exempt
 def deleteFromFridge(request):
     products = request.POST.get('products', None)
     token = request.POST.get('token', None)
@@ -199,6 +208,7 @@ def deleteFromFridge(request):
     return JsonResponse(response)
 
 
+@csrf_exempt
 def banIngredient(request):
     product = request.POST.get('product', None)
     token = request.POST.get('token', None)
@@ -216,6 +226,7 @@ def banIngredient(request):
     return JsonResponse(response)
 
 
+@csrf_exempt
 def unblockIngredient(request):
     product = request.POST.get('product', None)
     token = request.POST.get('token', None)
@@ -233,6 +244,7 @@ def unblockIngredient(request):
     return JsonResponse(response)
 
 
+@csrf_exempt
 def banRecipe(request):
     recipe = request.POST.get('recipe', None)
     token = request.POST.get('token', None)
@@ -250,6 +262,7 @@ def banRecipe(request):
     return JsonResponse(response)
 
 
+@csrf_exempt
 def unblockRecipe(request):
     recipe = request.POST.get('recipe', None)
     token = request.POST.get('token', None)
@@ -267,6 +280,7 @@ def unblockRecipe(request):
     return JsonResponse(response)
 
 
+@csrf_exempt
 def addForum(request):
     forum = request.POST.get('forum', None)
     token = request.POST.get('token', None)
@@ -284,6 +298,7 @@ def addForum(request):
     return JsonResponse(response)
 
 
+@csrf_exempt
 def deleteForum(request):
     forum = request.POST.get('forum', None)
     token = request.POST.get('token', None)
@@ -319,6 +334,7 @@ def starIngredient(request):
     return JsonResponse(response)
 
 
+@csrf_exempt
 def unstarIngredient(request):
     product = request.POST.get('product', None)
     token = request.POST.get('token', None)
@@ -336,6 +352,7 @@ def unstarIngredient(request):
     return JsonResponse(response)
 
 
+@csrf_exempt
 def starRecipe(request):
     recipe = request.POST.get('recipe', None)
     token = request.POST.get('token', None)
@@ -353,6 +370,7 @@ def starRecipe(request):
     return JsonResponse(response)
 
 
+@csrf_exempt
 def unstarRecipe(request):
     recipe = request.POST.get('recipe', None)
     token = request.POST.get('token', None)
@@ -370,6 +388,7 @@ def unstarRecipe(request):
     return JsonResponse(response)
 
 
+@csrf_exempt
 def verifyUser(request):
     code = request.POST.get('code', None)
     token = request.POST.get('token', None)
@@ -410,6 +429,3 @@ def verificationCode(request):
         response = {'message': str(e), 'status': -1}
     response['user'] = {}
     return JsonResponse(response)
-
-
-
