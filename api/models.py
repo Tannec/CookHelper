@@ -497,11 +497,11 @@ class Forum(models.Model, Type):
                 memebers.append(str(id))
                 self.members = " ".join(memebers)
                 del usr_forums[usr_forums.index(str(id))]
-                response = {"message": "User id={id} added to forum", "status": 1}
+                response = {"message": f"User id={id} added to topic", "status": 1}
             else:
-                response = {"message": "User id={id} added to forum", "status": 1}
+                response = {"message": f"User id={id} added to topic", "status": 1}
         except:
-            response = {"message": "User id={id} not found", "status": -1}
+            response = {"message": f"User id={id} not topic", "status": -1}
 
         self.save()
 
@@ -514,11 +514,11 @@ class Forum(models.Model, Type):
                 del members[members.index(str(id))]
                 self.members = " ".join(members)
                 del usr_forums[usr_forums.index(str(id))]
-                response = {"message": f"User id={id} deleted to forum", "status": 1}
+                response = {"message": f"User id={id} deleted to topic", "status": 1}
             else:
-                response = {"message": f"User id={id} deleted to forum", "status": 1}
+                response = {"message": f"User id={id} deleted to topic", "status": 1}
         except:
-            response = {"message": f"User id={id} not found", "status": -1}
+            response = {"message": f"User id={id} not topic", "status": -1}
         self.save()
         return response
 
@@ -530,7 +530,7 @@ class Forum(models.Model, Type):
             self.messages = " ".join(msg)
             response = {"message": f"Message added", "status": 1,}
         except Exception as e:
-            response = {"message": f"Message id={id} not found", "status": -1, "exception": str(e)}
+            response = {"message": f"Message id={id} not topic", "status": -1, "exception": str(e)}
         self.save()
         return response
 
