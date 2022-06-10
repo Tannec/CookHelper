@@ -5,8 +5,8 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework import generics
 from api.post_service.service import sendVerificationMail
 
-
 from api.models import User
+
 
 def sendMail(request):
     state = sendVerificationMail(code="123456", email='artur.231456@gmail.com')
@@ -14,28 +14,23 @@ def sendMail(request):
 
 
 def authorize(request):
-    nickname = request.GET.get('nickname', None)
-    email = request.GET.get('email', None)
+    login = request.GET.get('login', None)
     password = request.GET.get('password', None)
-    if nickname is None and email is None:
-        return JsonResponse({'message': 'Missed login like nickname or email', 'status': -1, 'user': {}})
+    if login is None:
+        return JsonResponse({'message': 'Missed login (nickname or email)', 'status': -1, 'user': {}})
     if password is None:
         return JsonResponse({'message': 'Missed password', 'status': -1, 'user': {}})
-    user = None
     try:
-        if nickname is not None:
-            user = User.objects.get(nickname=nickname)
-        else:
-            user = User.objects.get(email=email)
+        try:
+            user = User.objects.get(nickname=login)
+        finally:
+            user = User.objects.get(email=login)
         if not user.verified:
             code = user.generateCode()
             state = sendVerificationMail(code=code, email=user.email)
             return JsonResponse({'message': 'User not verified', 'status': -1, 'user': user.getInfo(0)})
     except:
-        pass
-    if user is None:
-        return JsonResponse({'message': f"User with login data nickname={nickname} or email={email} not found", 'status': -1, 'user': {
-            }})
+        return JsonResponse({'message': f"User not found", 'status': -1, 'user': {}})
     if user.validatePassword(password):
         response = user.getInfo(1)
         response['token'] = user.token
@@ -173,6 +168,7 @@ def setAvatar(request):
     return JsonResponse(response)
 
 
+@csrf_exempt
 def fillFridge(request):
     products = request.GET.get('products', None)
     token = request.GET.get('token', None)
@@ -190,6 +186,7 @@ def fillFridge(request):
     return JsonResponse(response)
 
 
+@csrf_exempt
 def deleteFromFridge(request):
     products = request.GET.get('products', None)
     token = request.GET.get('token', None)
@@ -207,6 +204,7 @@ def deleteFromFridge(request):
     return JsonResponse(response)
 
 
+@csrf_exempt
 def banIngredient(request):
     product = request.GET.get('product', None)
     token = request.GET.get('token', None)
@@ -224,6 +222,7 @@ def banIngredient(request):
     return JsonResponse(response)
 
 
+@csrf_exempt
 def unblockIngredient(request):
     product = request.GET.get('product', None)
     token = request.GET.get('token', None)
@@ -241,6 +240,7 @@ def unblockIngredient(request):
     return JsonResponse(response)
 
 
+@csrf_exempt
 def banRecipe(request):
     recipe = request.GET.get('recipe', None)
     token = request.GET.get('token', None)
@@ -258,6 +258,7 @@ def banRecipe(request):
     return JsonResponse(response)
 
 
+@csrf_exempt
 def unblockRecipe(request):
     recipe = request.GET.get('recipe', None)
     token = request.GET.get('token', None)
@@ -275,6 +276,7 @@ def unblockRecipe(request):
     return JsonResponse(response)
 
 
+@csrf_exempt
 def addForum(request):
     forum = request.GET.get('forum', None)
     token = request.GET.get('token', None)
@@ -292,6 +294,7 @@ def addForum(request):
     return JsonResponse(response)
 
 
+@csrf_exempt
 def deleteForum(request):
     forum = request.GET.get('forum', None)
     token = request.GET.get('token', None)
@@ -309,6 +312,7 @@ def deleteForum(request):
     return JsonResponse(response)
 
 
+@csrf_exempt
 def starIngredient(request):
     product = request.GET.get('product', None)
     token = request.GET.get('token', None)
@@ -326,6 +330,7 @@ def starIngredient(request):
     return JsonResponse(response)
 
 
+@csrf_exempt
 def unstarIngredient(request):
     product = request.GET.get('product', None)
     token = request.GET.get('token', None)
@@ -343,6 +348,7 @@ def unstarIngredient(request):
     return JsonResponse(response)
 
 
+@csrf_exempt
 def starRecipe(request):
     recipe = request.GET.get('recipe', None)
     token = request.GET.get('token', None)
@@ -360,6 +366,7 @@ def starRecipe(request):
     return JsonResponse(response)
 
 
+@csrf_exempt
 def unstarRecipe(request):
     recipe = request.GET.get('recipe', None)
     token = request.GET.get('token', None)
