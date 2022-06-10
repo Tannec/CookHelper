@@ -66,7 +66,6 @@ def changePassword(request):
         return JsonResponse({"message": "Wrong old password", "status": -1, 'user': {}})
 
 
-@csrf_exempt
 def register(request):
     user = User()
     response = user.register(request.GET.dict())
