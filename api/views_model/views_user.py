@@ -3,7 +3,7 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import generics
-from api.GET_service.service import sendVerificationMail
+from api.post_service.service import sendVerificationMail
 
 
 from api.models import User
