@@ -38,15 +38,14 @@ def authorize(request):
     except Exception:
         return JsonResponse({'message': f"User not found lgn={login} psw={password} dt={request.POST.dict()}", 'status': -1, 'user': {}})
 
-    if not user.verified:
-        return JsonResponse({'message': 'User not verified', 'status': 1, 'user': user.getInfo(0)})
+    if user.validatePassword(password):
+        response = user.getInfo(1)
+        response['token'] = user.token
+        if not user.verified:
+            return JsonResponse({'message': 'User not verified', 'status': 1, 'user': user.getInfo(0)})
+        return JsonResponse({'message': 'Authorized', 'user': response, 'status': 1})
     else:
-        if user.validatePassword(password):
-            response = user.getInfo(1)
-            response['token'] = user.token
-            return JsonResponse({'message': 'Authorized', 'user': response, 'status': 1})
-        else:
-            return JsonResponse({"message": "Wrong credentials", "status": -1, 'user': {}})
+        return JsonResponse({"message": "Wrong credentials", "status": -1, 'user': {}})
 
 
 @csrf_exempt
