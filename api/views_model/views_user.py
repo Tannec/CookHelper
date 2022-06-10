@@ -42,7 +42,7 @@ def authorize(request):
             return JsonResponse({'message': 'User not verified', 'status': 1, 'user': user.getInfo(0)})
         return JsonResponse({'message': 'Authorized', 'user': response, 'status': 1})
     else:
-        return JsonResponse({"message": "Wrong credentials", "status": -1, 'user': {}})
+        return JsonResponse({"message": f"Wrong credentials lgn={login}", "status": -1, 'user': {}})
 
 
 @csrf_exempt
