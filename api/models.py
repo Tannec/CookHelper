@@ -45,7 +45,7 @@ class MissFields(Exception):
 class User(models.Model, Type):
     name = CharField(max_length=40)
     surname = CharField(max_length=40)
-    email = EmailField(max_length=100, unique=True)
+    email = CharField(max_length=100, unique=True)
     avatar = ImageField(upload_to=f'{MEDIA_ROOT}')
     nickname = CharField(max_length=100, default="")
 
