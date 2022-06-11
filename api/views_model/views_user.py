@@ -64,9 +64,9 @@ def changePassword(request):
 def register(request):
     user = User()
     try:
-        data = clear(request.POST.dict())
+        data = clear(dict(request.POST.dict()))
     except Exception as e:
-        return JsonResponse({'message': str(e) + f'{data}'})
+        return JsonResponse({'message': str(e)})
     response = user.register(data)
     if response['status'] == 1:
         user.save()

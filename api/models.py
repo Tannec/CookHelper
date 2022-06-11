@@ -54,6 +54,7 @@ class User(models.Model, Type):
     deleted = BooleanField(default=False)
     verified = BooleanField(default=False)
     code = CharField(default="", max_length=100)
+    status = CharField(default="", max_length=200)
 
     fridge = TextField(default="")
     forums = TextField(default="")
@@ -119,7 +120,7 @@ class User(models.Model, Type):
     def getInfo(self, type) -> dict:
         try:
             dict = {}
-            dict['status'] = 1
+            dict['status'] = self.status
             dict['name'] = self.name
             dict['nickname'] = self.nickname
             dict['email'] = self.email
