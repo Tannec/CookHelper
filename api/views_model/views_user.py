@@ -66,7 +66,10 @@ def changePassword(request):
 @csrf_exempt
 def register(request):
     user = User()
-    data = clear(request.POST.dict())
+    try:
+        data = clear(request.POST.dict())
+    except Exception as e:
+        return JsonResponse({'message': str(e)})
     response = user.register(data)
     if response['status'] == 1:
         user.save()
