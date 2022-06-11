@@ -65,6 +65,7 @@ def register(request):
     user = User()
     try:
         data = clear(dict(request.POST.dict()))
+        return JsonResponse({'message': data})
     except Exception as e:
         return JsonResponse({'message': str(e)})
     response = user.register(data)
@@ -443,6 +444,9 @@ def clear(field):
     elif data is None:
         return None
     else:
-        if data[0] == data[-1] == '"':
-            data = data[1: len(data) - 1]
+        try:
+            if data[0] == data[-1] == '"':
+                data = data[1: len(data) - 1]
+        except:
+            data = {"Ti Dolboeb": 1}
     return data
