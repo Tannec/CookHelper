@@ -66,7 +66,7 @@ def register(request):
     try:
         data = clear(request.POST.dict())
     except Exception as e:
-        return JsonResponse({'message': str(e)})
+        return JsonResponse({'message': str(e) + f'{data}'})
     response = user.register(data)
     if response['status'] == 1:
         user.save()
