@@ -7,7 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework import generics
 from api.post_service.service import sendVerificationMail
 
-from api.models import User
+from api.models import User, Type
 
 
 @csrf_exempt
@@ -29,7 +29,7 @@ def authorize(request):
             if not user.verified:
                 code = user.generateCode(6)
                 s = sendVerificationMail(code=code, email=user.email, name=user.name)
-                return JsonResponse({'message': 'User not verified', 'status': 1, 'user': user.getInfo(0)})
+                return JsonResponse({'message': 'User not verified', 'status': 1, 'user': user.getInfo(Type.PRIVATE)})
             return JsonResponse({'message': 'Authorized', 'user': response, 'status': 1})
         else:
             return JsonResponse({"message": f"Wrong credentials", "status": -1, 'user': {}})
