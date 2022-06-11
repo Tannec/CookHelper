@@ -152,12 +152,6 @@ class User(models.Model, Type):
         except Exception as e:
             return {'message': str(e), 'status': -1}
 
-    def auth(self, nickname=None, password=None, email=None):
-        if (nickname == self.nickname or email == self.email) and self.validatePassword(password):
-            return {'token': self.token, 'status': 1}
-        else:
-            return {'message': 'Wrong credentials', 'status': -1, 'user': ''}
-
     def register(self, data):
         try:
             self.validateData(data)
@@ -175,11 +169,11 @@ class User(models.Model, Type):
             info['message'] = 'Registered'
             return info
         except UnknownField as e:
-            return {'message': str(e), 'field': e.unknownField(), 'status': -1, 'user': ''}
+            return {'message': str(e), 'field': e.unknownField(), 'status': -1, 'user': {}}
         except MissFields as e:
-            return {'message': str(e), 'fields': e.missedFields(), 'status': -1, 'user': ''}
+            return {'message': str(e), 'fields': e.missedFields(), 'status': -1, 'user': {}}
         except Exception as e:
-            return {'message': str(e), 'status': -1, 'user': ''}
+            return {'message': str(e), 'status': -1, 'user': {}}
 
     def preDelete(self):
         if not self.deleted:

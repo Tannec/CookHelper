@@ -473,6 +473,7 @@ def recoveryPasswordPost(request):
         st = (user.recoveryCode == code)
         if st:
             user.setPassword(password)
+            user.generateToken(user.getInfo(Type.PRIVATE))
             user.recoveryCode = ""
             user.save()
             response = {'message': 'Password changed', 'user': {}, 'status': 100}
