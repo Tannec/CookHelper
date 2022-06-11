@@ -48,6 +48,7 @@ class User(models.Model, Type):
     email = CharField(max_length=100, unique=True)
     avatar = ImageField(upload_to=f'{MEDIA_ROOT}', default="")
     nickname = CharField(max_length=100, default="", unique=True)
+    last_seen = BigIntegerField(default=None)
 
     password = TextField()
     token = CharField(max_length=512)
@@ -100,6 +101,7 @@ class User(models.Model, Type):
 
     def setAvatar(self, image: UploadedFile):
         self.avatar = image
+        self.last_seen = round(time.time() * 1000)
         self.save()
 
     def validateData(self, data):
@@ -127,7 +129,10 @@ class User(models.Model, Type):
             dict['surname'] = self.surname
             dict['avatar'] = self.avatar.name
             dict['verified'] = self.verified
+            dict['lastSeen'] = self.last_seen
             if type == self.PRIVATE:
+                self.last_seen = round(time.time() * 1000)
+                self.save()
                 dict['starredRecipes'] = self.starredRecipes
                 dict['bannedRecipes'] = self.bannedRecipes
                 dict['starredIngredients'] = self.starredIngredients
@@ -155,10 +160,11 @@ class User(models.Model, Type):
             self.nickname = data['nickname']
             self.surname = data['surname']
             self.email = data['email']
+            self.last_seen = round(time.time() * 1000)
             self.setPassword(data['password'])
             self.generateToken(data)
             info = {}
-            info['user'] = self.getInfo(1)
+            info['user'] = self.getInfo(Type.PRIVATE)
             info['user']['token'] = self.token
             info['status'] = 1
             info['message'] = 'Registered'
@@ -172,6 +178,7 @@ class User(models.Model, Type):
 
     def preDelete(self):
         if not self.deleted:
+            self.last_seen = round(time.time() * 1000)
             self.deleted = True
             self.save()
 
@@ -187,6 +194,7 @@ class User(models.Model, Type):
                 item = Ingredient.objects.get(id=int(i))
                 fridge.append(str(item.id))
             self.fridge = " ".join(fridge)
+            self.last_seen = round(time.time() * 1000)
             self.save()
             response = {"message": "Products added", "status": 1}
         except:
@@ -203,6 +211,7 @@ class User(models.Model, Type):
                 if str(item.id) in fridge:
                     del fridge[fridge.index(str(item.id))]
             self.fridge = " ".join(fridge)
+            self.last_seen = round(time.time() * 1000)
             self.save()
             response = {"message": "Products deleted", "status": 1}
         except:
@@ -218,6 +227,7 @@ class User(models.Model, Type):
             if str(item.id) in banned:
                 del banned[banned.index(str(item.id))]
             self.bannedIngredients = " ".join(banned)
+            self.last_seen = round(time.time() * 1000)
             self.save()
             response = {"message": "Product unblocked", "status": 1}
         except:
@@ -233,6 +243,7 @@ class User(models.Model, Type):
             if str(item.id) not in banned:
                 banned.append(str(item.id))
             self.bannedIngredients = " ".join(banned)
+            self.last_seen = round(time.time() * 1000)
             self.save()
             response = {"message": "Product banned", "status": 1}
         except:
@@ -247,6 +258,7 @@ class User(models.Model, Type):
             if str(item.id) not in banned:
                 banned.append(str(item.id))
             self.bannedRecipes = " ".join(banned)
+            self.last_seen = round(time.time() * 1000)
             self.save()
             response = {"message": "Recipe banned", "status": 1}
         except:
@@ -261,6 +273,7 @@ class User(models.Model, Type):
             if str(item.id) in banned:
                 del banned[banned.index(str(item.id))]
             self.bannedRecipes = " ".join(banned)
+            self.last_seen = round(time.time() * 1000)
             self.save()
             response = {"message": "Recipe unblocked", "status": 1}
         except:
@@ -277,6 +290,7 @@ class User(models.Model, Type):
                 if str(item.id) in starred:
                     del starred[starred.index(str(item.id))]
             self.starredIngredients = " ".join(starred)
+            self.last_seen = round(time.time() * 1000)
             self.save()
             response = {"message": "Products deleted from starred", "status": 1}
         except:
@@ -293,6 +307,7 @@ class User(models.Model, Type):
                 print("sad")
                 starred.append(str(item.id))
             self.starredIngredients = " ".join(starred)
+            self.last_seen = round(time.time() * 1000)
             self.save()
             response = {"message": "Product starred", "status": 1}
         except:
@@ -308,6 +323,7 @@ class User(models.Model, Type):
             if str(item.id) not in starred:
                 starred.append(str(item.id))
             self.bannedRecipes = " ".join(starred)
+            self.last_seen = round(time.time() * 1000)
             self.save()
             response = {"message": "Recipe starred", "status": 1}
         except:
@@ -323,6 +339,7 @@ class User(models.Model, Type):
             if str(item.id) in starred:
                 del starred[starred.index(str(item.id))]
             self.bannedRecipes = " ".join(starred)
+            self.last_seen = round(time.time() * 1000)
             self.save()
             response = {"message": "Recipe unblocked", "status": 1}
         except:
@@ -417,7 +434,7 @@ class Recipe(models.Model, Type):
         self.save()
 
     def addComment(self, text, user):
-        comment = TextMessages()
+        comment = TextMessage()
         comment.time = datetime.datetime.now()
         comment.userId = user
         comment.text = text
