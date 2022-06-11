@@ -64,8 +64,7 @@ def changePassword(request):
 def register(request):
     user = User()
     try:
-        data = clear(dict(request.POST.dict()))
-        return JsonResponse({'message': data})
+        data = clear(request.POST.dict())
     except Exception as e:
         return JsonResponse({'message': str(e)})
     response = user.register(data)
@@ -438,15 +437,12 @@ def verificationCode(request):
 
 def clear(field):
     data = field
-    if data is dict:
+    if type(data) is dict:
         for i in data:
             data[i] = clear(data[i])
     elif data is None:
         return None
     else:
-        try:
-            if data[0] == data[-1] == '"':
-                data = data[1: len(data) - 1]
-        except:
-            data = {"Ti Dolboeb": 1}
+        if data[0] == data[-1] == '"':
+            data = data[1: len(data) - 1]
     return data
