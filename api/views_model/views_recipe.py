@@ -5,7 +5,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from api.models import Recipe, User
 
-from static_functions import clear
+from api.views_model.static_functions import clear
 
 
 @csrf_exempt

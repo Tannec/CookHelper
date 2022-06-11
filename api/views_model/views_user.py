@@ -5,7 +5,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import generics
 from api.post_service.service import sendVerificationMail, sendRecoveryMail
-from static_functions import clear
+from api.views_model.static_functions import clear
 from api.models import User, Type
 
 
@@ -443,7 +443,7 @@ def recoveryPasswordGet(request):
             raise Exception('Login (email or nickname) required')
         user = User.objects.get(Q(email=login) | Q(nickname=login))
         code = user.generateCode(length=5, type=Type.PRIVATE)
-        st = sendRecoveryMail(email=user.email, code=code)
+        st = sendRecoveryMail(email=user.email, code=code, name=user.name)
         if st:
             response = {'message': 'Mail sent', 'user': {}, 'status': 100}
         else:

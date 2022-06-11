@@ -30,11 +30,27 @@ def sendVerificationMail(code=None, email=None, name=None):
         return False
     subject = 'Verify your CookHelper account'
     message = f"Dear {name},\n" \
-              "Do not reply to this mail.\n" \
+              "Do not reply to this mail.\n\n" \
               f"Verification code: {code}\n" \
               "Enter this code in CookHelper to verify your account.\n\n" \
               "Keep this code a secret!"
     try:
         return send_mail(email, subject, message)
     except Exception as e:
-        return str(e)
+        return False
+
+
+def sendRecoveryMail(code=None, email=None, name=None):
+    if code is None or email is None:
+        return False
+    subject = 'Recovery your CookHelper password'
+    message = f"Dear {name},\n" \
+              "Do not reply to this mail.\n" \
+              "If you do not want to recovery password then you should ignore this email\n\n" \
+              f"Recovery code: {code}\n" \
+              "Enter this code in CookHelper to recovery password of your account.\n\n" \
+              "Keep this code a secret!"
+    try:
+        return send_mail(email, subject, message)
+    except Exception as e:
+        return False
