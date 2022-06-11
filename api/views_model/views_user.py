@@ -29,7 +29,7 @@ def authorize(request):
             if not user.verified:
                 code = user.generateCode(6)
                 s = sendVerificationMail(code=code, email=user.email, name=user.name)
-                return JsonResponse({'message': 'User not verified', 'status': 1, 'user': user.getInfo(Type.PRIVATE)})
+                return JsonResponse({'message': 'User not verified', 'status': 1, 'user': response})
             return JsonResponse({'message': 'Authorized', 'user': response, 'status': 1})
         else:
             return JsonResponse({"message": f"Wrong credentials", "status": -1, 'user': {}})
