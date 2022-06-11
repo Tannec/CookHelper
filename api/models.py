@@ -49,13 +49,14 @@ class User(models.Model, Type):
     avatar = ImageField(upload_to=f'{MEDIA_ROOT}', default="")
     nickname = CharField(max_length=100, default="", unique=True)
     last_seen = BigIntegerField(default=None)
+    status = CharField(default="", max_length=200)
 
     password = TextField()
     token = CharField(max_length=512)
     deleted = BooleanField(default=False)
     verified = BooleanField(default=False)
-    code = CharField(default="", max_length=100)
-    status = CharField(default="", max_length=200)
+    code = CharField(default="", max_length=6)
+    recoveryCode = CharField(default="", max_length=5)
 
     fridge = TextField(default="")
     forums = TextField(default="")
@@ -82,11 +83,14 @@ class User(models.Model, Type):
         self.token = tt
         self.save()
 
-    def generateCode(self, length=6):
+    def generateCode(self, length=6, type=Type.GENERAL):
         code = ""
         for i in range(length):
             code += str(choice(range(10)))
-        self.code = code
+        if type == Type.GENERAL:
+            self.code = code
+        else:
+            self.recoveryCode = code
         self.save()
         return code
 
@@ -122,6 +126,7 @@ class User(models.Model, Type):
     def getInfo(self, type) -> dict:
         try:
             dict = {}
+            dict['id'] = self.id
             dict['status'] = self.status
             dict['name'] = self.name
             dict['nickname'] = self.nickname
@@ -365,8 +370,9 @@ class Recipe(models.Model, Type):
     comments = TextField(default='')
     userId = ForeignKey('User', on_delete=models.PROTECT, default=None)
     deleted = BooleanField(default=False)
+    private = BooleanField(default=False)
 
-    def getInfo(self):
+    def getInfo(self) -> dict:
         dict = {}
         dict['title'] = self.title
         dict['category'] = self.category
@@ -384,20 +390,17 @@ class Recipe(models.Model, Type):
         dict['deleted'] = self.deleted
         return dict
 
+
     def validateData(self, data):
         fields = ['title',
                   'steps',
                   'ingredients',
                   'time',
                   'category',
-                  'userId'
+                  'token'
                   ]
         for i in data:
-            if i not in fields:
-                raise UnknownField(i)
-                return
-            else:
-                del fields[fields.index(i)]
+            del fields[fields.index(i)]
         if fields:
             raise MissFields(fields)
 
@@ -409,21 +412,22 @@ class Recipe(models.Model, Type):
             self.ingredients = data['ingredients']
             self.time = data['time']
             self.category = data['category']
-            self.userId = data['userId']
-            self.save()
-        except UnknownField as e:
-            try:
+            user = User.objects.get(token=data['token'])
+            self.userId = user.id
+            if 'calories' in data:
                 self.calories = data['calories']
+            if 'fats' in data:
                 self.fats = data['fats']
+            if 'carbs' in data:
                 self.carbs = data['carbs']
+            if 'proteins' in data:
                 self.proteins = data['proteins']
-                self.save()
-            except:
-                pass
+            self.save()
+            return {'message': 'Recipe created', 'recipe': self.getInfo(), 'status': -1}
         except MissFields as e:
-            return {'message': str(e), 'fields': e.missedFields(), 'status': -1}
+            return {'message': str(e), 'recipe': {}, 'status': -1}
         except Exception as e:
-            return {'message': str(e), 'status': -1}
+            return {'message': str(e), 'status': -1, 'recipe': {}}
 
     def preDelete(self):
         self.deleted = True

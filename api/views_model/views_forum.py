@@ -2,13 +2,14 @@ from datetime import datetime
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-
+from static_functions import clear
 from api.models import Forum, User, TextMessage
+
 
 @csrf_exempt
 def addMember(request):
-    forumId = request.POST.get('id', None)
-    token = request.POST.get('token', None)
+    forumId = clear(request.POST.get('id', None))
+    token = clear(request.POST.get('token', None))
     if token is None:
         response = {"message": "Wrong token", "status": -1}
     else:
@@ -23,10 +24,11 @@ def addMember(request):
             response = {"message": "Wrong token or topic id", "exception": str(e), "status": -1}
     return JsonResponse(response)
 
+
 @csrf_exempt
 def deleteMember(request):
-    forumId = request.POST.get('id', None)
-    token = request.POST.get('token', None)
+    forumId = clear(request.POST.get('id', None))
+    token = clear(request.POST.get('token', None))
     if token is None:
         response = {"message": "Wrong token", "status": -1}
     else:
@@ -43,11 +45,12 @@ def deleteMember(request):
             return JsonResponse(response)
     return JsonResponse(response)
 
+
 @csrf_exempt
 def addMessage(request):
-    forumId = request.POST.get('id', None)
-    token = request.POST.get('token', None)
-    textMessage = request.POST.get('message', None)
+    forumId = clear(request.POST.get('id', None))
+    token = clear(request.POST.get('token', None))
+    textMessage = clear(request.POST.get('message', None))
     try:
         user = User.objects.get(token=token)
         if forumId is None:
@@ -66,10 +69,11 @@ def addMessage(request):
         response = {"message": "Wrong token or forum id", "exception": str(e), "status": -1}
         return JsonResponse(response)
 
+
 @csrf_exempt
 def createForum(request):
-    token = request.POST.get('token', None)
-    title = request.POST.get('title', None)
+    token = clear(request.POST.get('token', None))
+    title = clear(request.POST.get('title', None))
     if token is None:
         response = {"message": "Wrong token", "status": -1}
     else:
@@ -92,15 +96,17 @@ def getInfo(request):
     forumId = request.GET.get('id', None)
     try:
         forum = Forum.objects.get(id=forumId)
-        response = {'message': 'Topic info', 'topic': {'messages': forum.messages, 'owner': forum.owner, 'members': forum.members}}
+        response = {'message': 'Topic info',
+                    'topic': {'messages': forum.messages, 'owner': forum.owner, 'members': forum.members}}
     except Exception as e:
         response = {"message": "Wrong forum id", "exception": str(e), "status": -1}
     return JsonResponse(response)
 
+
 @csrf_exempt
 def deleteForum(request):
-    token = request.POST.get('token', None)
-    forumId = request.POST.get('id', None)
+    token = clear(request.POST.get('token', None))
+    forumId = clear(request.POST.get('id', None))
     try:
         if token is None:
             raise Exception('Token required')

@@ -1,12 +1,11 @@
 import json
-
 from django.db.models import Q
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import generics
-from api.post_service.service import sendVerificationMail
-
+from api.post_service.service import sendVerificationMail, sendRecoveryMail
+from static_functions import clear
 from api.models import User, Type
 
 
@@ -68,6 +67,8 @@ def register(request):
     except Exception as e:
         return JsonResponse({'message': str(e)})
     response = user.register(data)
+    if 'avatar' in request.FILES:
+        user.setAvatar(request.FILES['avatar'])
     if response['status'] == 1:
         user.save()
         code = user.generateCode(6)
@@ -395,8 +396,6 @@ def verifyUser(request):
     code = clear(request.POST.get('code', None))
     token = clear(request.POST.get('token', None))
 
-
-
     try:
         if token is None:
             raise Exception('Token required')
@@ -406,12 +405,11 @@ def verifyUser(request):
         user = User.objects.get(token=token)
 
         if user.verifyCode(code):
-            response = {'message': 'Account verified', 'status': 1}
+            response = {'message': 'Account verified', 'status': 1, 'user': user.getInfo(Type.PRIVATE)}
         else:
-            response = {'message': 'Wrong code', 'status': -1}
+            response = {'message': 'Wrong code', 'status': -1, 'user': {}}
     except Exception as e:
-        response = {'message': str(e), 'status': 0}
-    response['user'] = {}
+        response = {'message': str(e), 'status': 0, 'user': {}}
     return JsonResponse(response)
 
 
@@ -435,14 +433,51 @@ def verificationCode(request):
     return JsonResponse(response)
 
 
-def clear(field):
-    data = field
-    if type(data) is dict:
-        for i in data:
-            data[i] = clear(data[i])
-    elif data is None:
-        return None
-    else:
-        if data[0] == data[-1] == '"':
-            data = data[1: len(data) - 1]
-    return data
+def recoveryPasswordGet(request):
+    login = clear(request.GET.get('login', None))
+    response = {}
+    status = 101
+    try:
+        if login is None:
+            status = 104
+            raise Exception('Login (email or nickname) required')
+        user = User.objects.get(Q(email=login) | Q(nickname=login))
+        code = user.generateCode(length=5, type=Type.PRIVATE)
+        st = sendRecoveryMail(email=user.email, code=code)
+        if st:
+            response = {'message': 'Mail sent', 'user': {}, 'status': 100}
+        else:
+            response = {'message': 'Mail not sent', 'user': {}, 'status': 199}
+    except Exception as e:
+        response = {'message': str(e), 'user': {}, 'status': status}
+    return JsonResponse(response)
+
+
+def recoveryPasswordPost(request):
+    code = clear(request.POST.get('code', None))
+    login = clear(request.POST.get('login', None))
+    password = clear(request.POST.get('password', None))
+    response = {}
+    status = 101
+    try:
+        if code is None:
+            status = 104
+            raise Exception('Code required')
+        if login is None:
+            status = 104
+            raise Exception('Login (email or nickname) required')
+        if password is None:
+            status = 104
+            raise Exception('New password required')
+        user = User.objects.get(Q(email=login) | Q(nickname=login))
+        st = (user.recoveryCode == code)
+        if st:
+            user.setPassword(password)
+            user.recoveryCode = ""
+            user.save()
+            response = {'message': 'Password changed', 'user': {}, 'status': 100}
+        else:
+            response = {'message': 'Wrong code', 'user': {}, 'status': 102}
+    except Exception as e:
+        response = {'message': str(e), 'user': {}, 'status': status}
+    return JsonResponse(response)

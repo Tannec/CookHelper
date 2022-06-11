@@ -27,6 +27,8 @@ urlpatterns = [
     path('api/user/post/banned-product/delete/', unblockIngredient),
     path('api/user/post/verify/', verifyUser),
     path('api/user/get/verification/', verificationCode),
+    path('api/user/get/recover-password/', recoveryPasswordGet),
+    path('api/user/post/recover-password/', recoveryPasswordPost),
 
     path('api/forum/post/create/', createForum),
     path('api/forum/get/', getInfo),
