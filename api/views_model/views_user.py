@@ -21,9 +21,6 @@ def authorize(request):
     if password is None:
         return JsonResponse({'message': 'Missed password', 'status': -1, 'user': {}})
 
-    login = "".join(login.split('"'))
-    password = "".join(password.split('"'))
-
     try:
         user = User.objects.get(Q(nickname=login) | Q(email=login))
         if user.validatePassword(password):
@@ -36,8 +33,8 @@ def authorize(request):
             return JsonResponse({'message': 'Authorized', 'user': response, 'status': 1})
         else:
             return JsonResponse({"message": f"Wrong credentials", "status": -1, 'user': {}})
-    except Exception:
-        return JsonResponse({'message': f"User not found", 'status': -1, 'user': {}})
+    except Exception as e:
+        return JsonResponse({'message': f"User not found {str(e)}", 'status': -1, 'user': {}})
 
 
 @csrf_exempt
@@ -439,12 +436,13 @@ def verificationCode(request):
 
 
 def clear(field):
-    if field is dict:
-        for i in field:
-            field[i] = clear(field[i])
-    elif field is None:
+    data = field
+    if data is dict:
+        for i in data:
+            data[i] = clear(data[i])
+    elif data is None:
         return None
     else:
-        if field[0] == field[-1] == '"':
-            field = field[1: len(field) - 1]
-    return field
+        if data[0] == data[-1] == '"':
+            data = data[1: len(data) - 1]
+    return data
