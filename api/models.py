@@ -80,7 +80,7 @@ class User(models.Model, Type):
         self.token = tt
         self.save()
 
-    def generateCode(self, length):
+    def generateCode(self, length=6):
         code = ""
         for i in range(length):
             code += str(choice(range(10)))
