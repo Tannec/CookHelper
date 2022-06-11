@@ -11,12 +11,6 @@ from api.models import User
 
 
 @csrf_exempt
-def sendMail(request):
-    state = sendVerificationMail(code="123456", email='artur.231456@gmail.com')
-    return JsonResponse({'message': 'qweqwe', 'status': 1, 'user': f'{state}'})
-
-
-@csrf_exempt
 def authorize(request):
     login = request.POST.get('login', None)
     password = request.POST.get('password', None)
@@ -76,7 +70,7 @@ def register(request):
     if response['status'] == 1:
         user.save()
         code = user.generateCode(6)
-        state = sendVerificationMail(code=code, email=user.email)
+        state = sendVerificationMail(code=code, email=user.email, name=user.name)
     return JsonResponse(response)
 
 

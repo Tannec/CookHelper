@@ -5,8 +5,8 @@ from email.mime.text import MIMEText
 
 HOST = 'smtp.yandex.ru'
 PORT = 465
-FROM = 'HestiaNet@yandex.ru'
-PASSWORD = 'yljnesthciyszjmw'
+FROM = 'cookhelper@yandex.ru'
+PASSWORD = 'biliekauzlszitbb'
 
 
 def send_mail(email, subject, text):
