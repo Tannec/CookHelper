@@ -38,6 +38,7 @@ def authorize(request):
         else:
             raise ModelException(message='Wrong credentials',
                                  status=102)
+
     except SuccessException as e:
         status = int(e)
         message = str(e)
@@ -45,14 +46,17 @@ def authorize(request):
         status = int(e)
         message = str(e)
     except User.DoesNotExist as e:
-        status = int(e)
+        status = 101
         message = str(e)
+    except PermissionException as e:
+        message = str(e)
+        status = int(e)
     except FieldRequiredException as e:
+        message = str(e)
         status = int(e)
-        message = str(e)
     except Exception as e:
-        status = 199
         message = str(e)
+        status = 199
 
     response['message'] = message
     response['status'] = status
@@ -98,14 +102,17 @@ def changePassword(request):
         status = int(e)
         message = str(e)
     except User.DoesNotExist as e:
-        status = int(e)
+        status = 101
         message = str(e)
+    except PermissionException as e:
+        message = str(e)
+        status = int(e)
     except FieldRequiredException as e:
+        message = str(e)
         status = int(e)
-        message = str(e)
     except Exception as e:
-        status = 199
         message = str(e)
+        status = 199
 
     response['message'] = message
     response['status'] = status
@@ -141,15 +148,18 @@ def register(request):
             SuccessException(message='Code has not been sent')
 
     except SuccessException as e:
-        message = str(e)
         status = int(e)
-    except MissFields as e:
+        message = str(e)
+    except ModelException as e:
+        status = int(e)
+        message = str(e)
+    except User.DoesNotExist as e:
+        status = 101
+        message = str(e)
+    except PermissionException as e:
         message = str(e)
         status = int(e)
     except FieldRequiredException as e:
-        message = str(e)
-        status = int(e)
-    except RejectException as e:
         message = str(e)
         status = int(e)
     except Exception as e:
@@ -203,7 +213,7 @@ def info(request):
         status = int(e)
         message = str(e)
     except User.DoesNotExist as e:
-        status = int(e)
+        status = 101
         message = str(e)
     except PermissionException as e:
         message = str(e)
@@ -214,6 +224,7 @@ def info(request):
     except Exception as e:
         message = str(e)
         status = 199
+
     response['message'] = message
     response['status'] = status
     response['user'] = userInfo
@@ -244,13 +255,16 @@ def delete(request):
             ModelException(message='Wrong password',
                            status=102)
 
-    except User.DoesNotExist as e:
-        message = str(e)
-        status = 101
     except SuccessException as e:
-        message = str(e)
         status = int(e)
+        message = str(e)
     except ModelException as e:
+        status = int(e)
+        message = str(e)
+    except User.DoesNotExist as e:
+        status = 101
+        message = str(e)
+    except PermissionException as e:
         message = str(e)
         status = int(e)
     except FieldRequiredException as e:
@@ -291,6 +305,7 @@ def recover(request):
             raise SuccessException(message='User recovered')
         else:
             raise ModelException(message='Wrong password', status=102)
+
     except SuccessException as e:
         status = int(e)
         message = str(e)
@@ -298,7 +313,7 @@ def recover(request):
         status = int(e)
         message = str(e)
     except User.DoesNotExist as e:
-        status = int(e)
+        status = 101
         message = str(e)
     except PermissionException as e:
         message = str(e)
@@ -318,17 +333,25 @@ def recover(request):
 
 @csrf_exempt
 def setAvatar(request):
-    image = request.FILES['image']
     token = clear(request.POST.get('token', None))
-    if token is None:
-        response = {"message": "Wrong token", "status": -1, 'user': {}}
-    else:
-        try:
-            user = User.objects.get(token=token)
-            user.setAvatar(image)
-            response = {"message": "Avatar uploaded", "status": 1, 'user': {}}
-        except Exception as e:
-            response = {"message": "Wrong params", "exception": str(e), "status": -1, 'user': {}}
+
+    response = {}
+    message = 'Exception'
+    status = 199
+    userInfo = {}
+
+    try:
+
+        if token is None:
+            FieldRequiredException(field='token')
+        ima
+        user = User.objects.get(token=token)
+        user.setAvatar(image)
+        response = {"message": "Avatar uploaded", "status": 1, 'user': {}}
+    except Exception as e:
+        response = {"message": "Wrong params", "exception": str(e), "status": -1, 'user': {}}
+
+
     return JsonResponse(response)
 
 
