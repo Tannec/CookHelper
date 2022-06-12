@@ -344,7 +344,7 @@ def setAvatar(request):
 
         if token is None:
             FieldRequiredException(field='token')
-        ima
+        image = request.FILES['image']
         user = User.objects.get(token=token)
         user.setAvatar(image)
         response = {"message": "Avatar uploaded", "status": 1, 'user': {}}
@@ -689,3 +689,4 @@ def recoveryPasswordPost(request):
         response = {'message': str(e), 'user': {}}
     response['status'] = status
     return JsonResponse(response)
+

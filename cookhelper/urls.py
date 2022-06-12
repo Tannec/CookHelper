@@ -29,8 +29,6 @@ urlpatterns = [
     path('api/user/get/verification/', verificationCode),
     path('api/user/get/recover-password/', recoveryPasswordGet),
     path('api/user/post/recover-password/', recoveryPasswordPost),
-    path('api/user/get/check-availability/email/', emailAvailability),
-    path('api/user/get/check-availability/nickname/', nicknameAvailability),
 
     path('api/forum/post/create/', createForum),
     path('api/forum/get/', getInfo),
