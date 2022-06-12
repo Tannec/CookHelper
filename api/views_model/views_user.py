@@ -6,6 +6,8 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework import generics
 from api.post_service.service import sendVerificationMail, sendRecoveryMail
 from api.views_model.static_functions import clear
+from api.views_model.static_functions import FieldRequiredException, MissFields, RejectException, PermissionException, \
+    ModelException, UnknownField, SuccessException
 from api.models import User, Type
 
 
@@ -13,27 +15,50 @@ from api.models import User, Type
 def authorize(request):
     login = clear(request.POST.get('login', None))
     password = clear(request.POST.get('password', None))
-    user = None
 
-    if login is None:
-        return JsonResponse({'message': f'Missed login (nickname or email)', 'status': -1, 'user': {}})
-    if password is None:
-        return JsonResponse({'message': 'Missed password', 'status': -1, 'user': {}})
+    userInfo = {}
+    response = {}
 
     try:
+        if login is None:
+            raise FieldRequiredException('login')
+        if password is None:
+            raise FieldRequiredException('password')
+
         user = User.objects.get(Q(nickname=login) | Q(email=login))
+
         if user.validatePassword(password):
-            response = user.getInfo(1)
-            response['token'] = user.token
-            if not user.verified:
-                code = user.generateCode(6)
-                s = sendVerificationMail(code=code, email=user.email, name=user.name)
-                return JsonResponse({'message': 'User not verified', 'status': 1, 'user': response})
-            return JsonResponse({'message': 'Authorized', 'user': response, 'status': 1})
+            userInfo = user.getInfo(1)
+            userInfo['token'] = user.token
+            if user.verified:
+                raise SuccessException(message='Authorized')
+            else:
+                raise SuccessException(message='User not verified',
+                                       status=103)
         else:
-            return JsonResponse({"message": f"Wrong credentials", "status": -1, 'user': {}})
+            raise ModelException(message='Wrong credentials',
+                                 status=102)
+    except SuccessException as e:
+        status = int(e)
+        message = str(e)
+    except ModelException as e:
+        status = int(e)
+        message = str(e)
+    except User.DoesNotExist as e:
+        status = int(e)
+        message = str(e)
+    except FieldRequiredException as e:
+        status = int(e)
+        message = str(e)
     except Exception as e:
-        return JsonResponse({'message': f"User not found {str(e)}", 'status': -1, 'user': {}})
+        status = 199
+        message = str(e)
+
+    response['message'] = message
+    response['status'] = status
+    response['user'] = userInfo
+
+    return JsonResponse(response)
 
 
 @csrf_exempt
@@ -41,76 +66,157 @@ def changePassword(request):
     token = clear(request.POST.get('token', None))
     old_password = clear(request.POST.get('old_password', None))
     new_password = clear(request.POST.get('new_password', None))
-    if token is None:
-        return JsonResponse({'message': 'Missed token', 'status': -1, 'user': {}})
-    if old_password is None:
-        return JsonResponse({'message': 'Missed old password', 'status': -1, 'user': {}})
-    if new_password is None:
-        return JsonResponse({'message': 'Missed new password', 'status': -1, 'user': {}})
+
+    response = {}
+    userInfo = {}
+    message = 'Some exception'
+    status = 199
+
     try:
+        if token is None:
+            raise FieldRequiredException('token')
+        if old_password is None:
+            raise FieldRequiredException('old password')
+        if new_password is None:
+            raise FieldRequiredException('new password')
+
         user = User.objects.get(token=token)
-    except:
-        return JsonResponse({'message': f"Wrong token", 'status': -1, 'user': {}})
-    if user.validatePassword(old_password):
-        user.generateToken(user.getInfo(1))
-        user.setPassword(new_password)
-        return JsonResponse({'message': 'Password changed', 'token': user.token, 'status': 1, 'user': {}})
-    else:
-        return JsonResponse({"message": "Wrong old password", "status": -1, 'user': {}})
+
+        if user.validatePassword(old_password):
+            user.generateToken(user.getInfo(1))
+            user.setPassword(new_password)
+            SuccessException(message='Password changed')
+            userInfo = user.getInfo(Type.PRIVATE)
+        else:
+            ModelException(status=102,
+                           message='Wrong password')
+
+    except SuccessException as e:
+        status = int(e)
+        message = str(e)
+    except ModelException as e:
+        status = int(e)
+        message = str(e)
+    except User.DoesNotExist as e:
+        status = int(e)
+        message = str(e)
+    except FieldRequiredException as e:
+        status = int(e)
+        message = str(e)
+    except Exception as e:
+        status = 199
+        message = str(e)
+
+    response['message'] = message
+    response['status'] = status
+    response['user'] = userInfo
+
+    return JsonResponse(response)
 
 
 @csrf_exempt
 def register(request):
-    user = User()
+    data = clear(request.POST.dict())
+
+    userInfo = {}
+    response = {}
+    message = 'Exception'
+    status = 199
+
     try:
-        data = clear(request.POST.dict())
-    except Exception as e:
-        return JsonResponse({'message': str(e)})
-    response = user.register(data)
-    if 'avatar' in request.FILES:
-        user.setAvatar(request.FILES['avatar'])
-    if response['status'] == 1:
+        user = User()
+
+        response = user.register(data)
+        if 'avatar' in request.FILES:
+            user.setAvatar(request.FILES['avatar'])
         user.save()
+
         code = user.generateCode(6)
+        userInfo = user.getInfo(Type.PRIVATE)
+
         state = sendVerificationMail(code=code, email=user.email, name=user.name)
+        if state is True:
+            SuccessException(message='Registered')
+        else:
+            SuccessException(message='Code has not been sent')
+
+    except SuccessException as e:
+        message = str(e)
+        status = int(e)
+    except MissFields as e:
+        message = str(e)
+        status = int(e)
+    except FieldRequiredException as e:
+        message = str(e)
+        status = int(e)
+    except RejectException as e:
+        message = str(e)
+        status = int(e)
+    except Exception as e:
+        message = str(e)
+        status = 199
+
+    response['status'] = status
+    response['message'] = message
+    response['user'] = userInfo
+
     return JsonResponse(response)
 
 
 def info(request):
-    response = {}
     id = request.GET.get('id', None)
     field = request.GET.get('field', None)
     token = request.GET.get('token', None)
-    if id is None:
+
+    response = {}
+    message = {}
+    userInfo = {}
+    status = 199
+    privacy = Type.PRIVATE
+
+    try:
+        if id is None:
+            raise FieldRequiredException('User id required')
+        if field is None:
+            raise FieldRequiredException('User field required')
         if token is None:
-            response = {"message": "TOKEN or ID required", "status": -1, 'user': {}}
+            raise FieldRequiredException('User token required')
+
+        user = User.objects.get(token=token)
+        userRequired = User.objects.get(id=id)
+
+        if user != userRequired:
+            privacy = Type.GENERAL
+
+        info = userRequired.getInfo(privacy)
+        if field not in info:
+            userInfo = {}
+            raise PermissionException()
         else:
-            try:
-                user = User.objects.get(token=token)
-                if user.deleted:
-                    return JsonResponse({"message": "User deleted", "status": -1, 'user': {}})
-                response['user'] = user.getInfo(1)
-                response['status'] = 1
-            except Exception as e:
-                response = {"message": "Wrong token", "exception": str(e), "status": -1, 'user': {}}
-    else:
-        try:
-            user_requested = User.objects.get(id=id)
-            if user_requested.deleted:
-                return JsonResponse({"message": "User deleted", "status": 1, 'user': {}})
-            type = 1 if user_requested.token == token else 0
-            if field is None:
-                response['user'] = user_requested.getInfo(type)
-                response['status'] = 1
-            else:
-                info = user_requested.getInfo(type)
-                if field in info:
-                    response['user'] = {field: info[field]}
-                    response['status'] = 1
-                else:
-                    response = {"message": "Permission denied", "status": -1, 'user': {}}
-        except Exception as e:
-            response = {"message": f"User with id={id} not found", "exception": str(e), "status": -1, 'user': {}}
+            userInfo[field] = info[field]
+            SuccessException(message='Field permitted')
+
+    except SuccessException as e:
+        status = int(e)
+        message = str(e)
+    except ModelException as e:
+        status = int(e)
+        message = str(e)
+    except User.DoesNotExist as e:
+        status = int(e)
+        message = str(e)
+    except PermissionException as e:
+        message = str(e)
+        status = int(e)
+    except FieldRequiredException as e:
+        message = str(e)
+        status = int(e)
+    except Exception as e:
+        message = str(e)
+        status = 199
+    response['message'] = message
+    response['status'] = status
+    response['user'] = userInfo
     return JsonResponse(response)
 
 
@@ -118,22 +224,45 @@ def info(request):
 def delete(request):
     password = clear(request.POST.get('password', None))
     token = clear(request.POST.get('token', None))
-    if token is None:
-        response = {"message": "Wrong token", "status": -1, 'user': {}}
-        return JsonResponse(response)
-    if password is None:
-        response = {"message": "Wrong password", "status": -1, 'user': {}}
-        return JsonResponse(response)
+
+    response = {}
+    message = 'Exception'
+    status = 199
 
     try:
+        if token is None:
+            raise FieldRequiredException(field='token')
+        if password is None:
+            raise FieldRequiredException(field='password')
+
         user = User.objects.get(token=token)
+
         if user.validatePassword(password):
             user.preDelete()
-            response = {"message": "User deleted", "status": 1, 'user': {}}
+            raise SuccessException(message='User deleted')
         else:
-            response = {"message": "Wrong password", "status": -1, 'user': {}}
+            ModelException(message='Wrong password',
+                           status=102)
+
+    except User.DoesNotExist as e:
+        message = str(e)
+        status = 101
+    except SuccessException as e:
+        message = str(e)
+        status = int(e)
+    except ModelException as e:
+        message = str(e)
+        status = int(e)
+    except FieldRequiredException as e:
+        message = str(e)
+        status = int(e)
     except Exception as e:
-        response = {"message": "Wrong token", "exception": str(e), "status": -1, 'user': {}}
+        message = str(e)
+        status = 199
+
+    response['message'] = message
+    response['status'] = status
+    response['user'] = {}
     return JsonResponse(response)
 
 
@@ -141,21 +270,49 @@ def delete(request):
 def recover(request):
     password = clear(request.POST.get('password', None))
     login = clear(request.POST.get('login', None))
-    if login is None:
-        response = {"message": "Wrong login", "status": -1, 'user': {}}
-        return JsonResponse(response)
-    if password is None:
-        response = {"message": "Wrong password", "status": -1, 'user': {}}
-        return JsonResponse(response)
+
+    response = {}
+    message = 'Exception'
+    status = 199
+    userInfo = {}
+
     try:
-        user = User.objects.get(login=login)
+
+        if login is None:
+            raise FieldRequiredException(field='login')
+        if password is None:
+            raise FieldRequiredException(field='password')
+
+        user = User.objects.get(Q(email=login) | Q(nicknme=login))
+
         if user.validatePassword(password):
             user.recover()
-            response = {"message": "User recovered", "status": 1, 'user': {}}
+            userInfo = user.getInfo(Type.PRIVATE)
+            raise SuccessException(message='User recovered')
         else:
-            response = {"message": "Wrong password", "status": -1, 'user': {}}
+            raise ModelException(message='Wrong password', status=102)
+    except SuccessException as e:
+        status = int(e)
+        message = str(e)
+    except ModelException as e:
+        status = int(e)
+        message = str(e)
+    except User.DoesNotExist as e:
+        status = int(e)
+        message = str(e)
+    except PermissionException as e:
+        message = str(e)
+        status = int(e)
+    except FieldRequiredException as e:
+        message = str(e)
+        status = int(e)
     except Exception as e:
-        response = {"message": f"User with login '{login}' not found", "exception": str(e), "status": -1}
+        message = str(e)
+        status = 199
+
+    response['message'] = message
+    response['status'] = status
+    response['user'] = userInfo
     return JsonResponse(response)
 
 
@@ -267,127 +424,138 @@ def banRecipe(request):
 
 @csrf_exempt
 def unblockRecipe(request):
-    recipe = clear(request.POST.get('recipe', None))
+    recipe = clear(request.POST.get('id', None))
     token = clear(request.POST.get('token', None))
-    if token is None:
-        response = {"message": "Wrong token", "status": -1, 'user': {}}
-    else:
-        try:
-            user = User.objects.get(token=token)
-            if recipe is None:
-                response = {"message": "Recipe required", "status": -1, 'user': {}}
-            else:
-                response = user.unblockRecipe(recipe)
-        except Exception as e:
-            response = {"message": "Wrong token", "exception": str(e), "status": -1, 'user': {}}
-    return JsonResponse(response)
+    status = 101
+    try:
+        if token is None:
+            status = 104
+            raise Exception('Token required')
+        if recipe is None:
+            status = 104
+            raise Exception('Product id required')
 
+        user = User.objects.get(token=token)
+        response = user.unblockRecipe(recipe)
 
-@csrf_exempt
-def addForum(request):
-    forum = clear(request.POST.get('forum', None))
-    token = clear(request.POST.get('token', None))
-    if token is None:
-        response = {"message": "Wrong token", "status": -1, 'user': {}}
-    else:
-        try:
-            user = User.objects.get(token=token)
-            if forum is None:
-                response = {"message": "Forum required", "status": -1, 'user': {}}
-            else:
-                response = user.addForum(forum)
-        except Exception as e:
-            response = {"message": "Wrong token", "exception": str(e), "status": -1, 'user': {}}
-    return JsonResponse(response)
+        if response['status'] == -1:
+            status = 102
+        else:
+            status = 100
 
-
-@csrf_exempt
-def deleteForum(request):
-    forum = clear(request.POST.get('forum', None))
-    token = clear(request.POST.get('token', None))
-    if token is None:
-        response = {"message": "Wrong token", "status": -1, 'user': {}}
-    else:
-        try:
-            user = User.objects.get(token=token)
-            if forum is None:
-                response = {"message": "Forum required", "status": -1, 'user': {}}
-            else:
-                response = user.deleteForum(forum)
-        except Exception as e:
-            response = {"message": "Wrong token", "exception": str(e), "status": -1, 'user': {}}
+    except Exception as e:
+        response = {"message": str(e), 'user': {}}
+    response['status'] = status
     return JsonResponse(response)
 
 
 @csrf_exempt
 def starIngredient(request):
-    product = clear(request.POST.get('product', None))
+    status = 101
+    product = clear(request.POST.get('id', None))
     token = clear(request.POST.get('token', None))
-    if token is None:
-        response = {"message": "Wrong token", "status": -1, 'user': {}}
-    else:
-        try:
-            user = User.objects.get(token=token)
-            if product is None:
-                response = {"message": "Product required", "status": -1, 'user': {}}
-            else:
-                response = user.starIngredient(product)
-        except Exception as e:
-            response = {"message": "Wrong token", "exception": str(e), "status": -1, 'user': {}}
+    try:
+        if token is None:
+            status = 104
+            raise Exception('Token required')
+        if product is None:
+            status = 104
+            raise Exception('Product id required')
+
+        user = User.objects.get(token=token)
+        response = user.starIngredient(product)
+
+        if response['status'] == -1:
+            status = 102
+        else:
+            status = 100
+
+    except Exception as e:
+        response = {"message": str(e), 'user': {}}
+    response['status'] = status
     return JsonResponse(response)
 
 
 @csrf_exempt
 def unstarIngredient(request):
-    product = clear(request.POST.get('product', None))
+    status = 101
+    product = clear(request.POST.get('id', None))
     token = clear(request.POST.get('token', None))
-    if token is None:
-        response = {"message": "Wrong token", "status": -1, 'user': {}}
-    else:
-        try:
-            user = User.objects.get(token=token)
-            if product is None:
-                response = {"message": "Product required", "status": -1, 'user': {}}
-            else:
-                response = user.unstarIngredient(product)
-        except Exception as e:
-            response = {"message": "Wrong token", "exception": str(e), "status": -1, 'user': {}}
+    try:
+        if token is None:
+            status = 104
+            raise Exception('Token required')
+        if product is None:
+            status = 104
+            raise Exception('Product id required')
+
+        user = User.objects.get(token=token)
+        response = user.unstarIngredient(product)
+
+        if response['status'] == -1:
+            status = 102
+        else:
+            status = 100
+
+    except Exception as e:
+        response = {'message': str(e), 'user': {}}
+    response['status'] = status
     return JsonResponse(response)
 
 
 @csrf_exempt
 def starRecipe(request):
-    recipe = clear(request.POST.get('recipe', None))
+    recipe = clear(request.POST.get('id', None))
     token = clear(request.POST.get('token', None))
-    if token is None:
-        response = {"message": "Wrong token", "status": -1, 'user': {}}
-    else:
-        try:
-            user = User.objects.get(token=token)
-            if recipe is None:
-                response = {"message": "Recipe required", "status": -1, 'user': {}}
-            else:
-                response = user.starRecipe(recipe)
-        except Exception as e:
-            response = {"message": "Wrong token", "exception": str(e), "status": -1, 'user': {}}
+    status = 101
+    try:
+
+        if token is None:
+            status = 104
+            raise Exception('Token required')
+        if recipe is None:
+            status = 104
+            raise Exception('Recipe id required')
+
+        user = User.objects.get(token=token)
+        response = user.starRecipe(recipe)
+
+        if response['status'] == -1:
+            status = 102
+        else:
+            status = 100
+
+    except Exception as e:
+        response = {'message': str(e)}
+    response['status'] = status
+    response['user'] = {}
     return JsonResponse(response)
 
 
 @csrf_exempt
 def unstarRecipe(request):
-    recipe = clear(request.POST.get('recipe', None))
+    recipe = clear(request.POST.get('id', None))
     token = clear(request.POST.get('token', None))
-    if token is None:
-        response = {"message": "Wrong token", "status": -1, 'user': {}}
-    else:
-        try:
-            user = User.objects.get(token=token)
-            if recipe is None:
-                response = {"message": "Recipe required", "status": -1, 'user': {}}
-            else:
-                response = user.unstarRecipe(recipe)
-        except Exception as e:
-            response = {"message": "Wrong token", "exception": str(e), "status": -1, 'user': {}}
+    status = 101
+    try:
+        if token is None:
+            status = 104
+            raise Exception('Token requied')
+        if recipe is None:
+            status = 104
+            raise Exception('Recipe id required')
+
+        user = User.objects.get(token=token)
+        response = user.unstarRecipe(recipe)
+
+        if response['status'] == -1:
+            status = 102
+        else:
+            status = 100
+
+    except Exception as e:
+        response = {'message': str(e), 'user': {}}
+    response['status'] = status
     return JsonResponse(response)
 
 
@@ -395,26 +563,32 @@ def unstarRecipe(request):
 def verifyUser(request):
     code = clear(request.POST.get('code', None))
     token = clear(request.POST.get('token', None))
-
+    status = 101
     try:
         if token is None:
+            status = 104
             raise Exception('Token required')
         if code is None:
+            status = 104
             raise Exception('Code required')
 
         user = User.objects.get(token=token)
 
         if user.verifyCode(code):
-            response = {'message': 'Account verified', 'status': 1, 'user': user.getInfo(Type.PRIVATE)}
+            status = 100
+            response = {'message': 'Account verified', 'user': user.getInfo(Type.PRIVATE)}
         else:
-            response = {'message': 'Wrong code', 'status': -1, 'user': {}}
+            status = 102
+            response = {'message': 'Wrong code', 'user': {}}
     except Exception as e:
-        response = {'message': str(e), 'status': 0, 'user': {}}
+        response = {'message': str(e), 'user': {}}
+    response['status'] = status
     return JsonResponse(response)
 
 
 def verificationCode(request):
     token = request.GET.get('token', None)
+    status = 101
     try:
         if token is None:
             raise Exception('Token required')
@@ -424,11 +598,15 @@ def verificationCode(request):
         code = user.generateCode()
 
         if sendVerificationMail(code=code, email=user.email, name=user.name):
-            response = {'message': 'Verification code has been sent', 'status': 1}
+            status = 100
+            response = {'message': 'Verification code has been sent'}
         else:
-            response = {'message': 'Verification code has not been sent', 'status': 1}
+            status = 199
+            response = {'message': 'Verification code has not been sent'}
     except Exception as e:
-        response = {'message': str(e), 'status': -1}
+        status = 199
+        response = {'message': str(e)}
+    response['status'] = status
     response['user'] = {}
     return JsonResponse(response)
 
@@ -445,11 +623,14 @@ def recoveryPasswordGet(request):
         code = user.generateCode(length=5, type=Type.PRIVATE)
         st = sendRecoveryMail(email=user.email, code=code, name=user.name)
         if st:
-            response = {'message': 'Mail sent', 'user': {}, 'status': 100}
+            status = 100
+            response = {'message': 'Mail sent', 'user': {}}
         else:
-            response = {'message': 'Mail not sent', 'user': {}, 'status': 199}
+            status = 199
+            response = {'message': 'Mail not sent', 'user': {}}
     except Exception as e:
-        response = {'message': str(e), 'user': {}, 'status': status}
+        response = {'message': str(e), 'user': {}}
+    response['status'] = status
     return JsonResponse(response)
 
 
@@ -476,9 +657,12 @@ def recoveryPasswordPost(request):
             user.generateToken(user.getInfo(Type.PRIVATE))
             user.recoveryCode = ""
             user.save()
-            response = {'message': 'Password changed', 'user': {}, 'status': 100}
+            status = 100
+            response = {'message': 'Password changed', 'user': {}}
         else:
-            response = {'message': 'Wrong code', 'user': {}, 'status': 102}
+            status = 102
+            response = {'message': 'Wrong code', 'user': {}}
     except Exception as e:
-        response = {'message': str(e), 'user': {}, 'status': status}
+        response = {'message': str(e), 'user': {}}
+    response['status'] = status
     return JsonResponse(response)

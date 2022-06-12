@@ -7,7 +7,7 @@ from django.db.models import *
 from werkzeug.security import *
 import datetime
 from cookhelper.settings import SECRET_KEY, STATICFILES_DIRS, MEDIA_ROOT
-
+from api.views_model.static_functions import *
 
 # models: Recipe, User, Forum, Ingredient, Dialog
 
@@ -83,6 +83,20 @@ class User(models.Model, Type):
         self.token = tt
         self.save()
 
+    def emailAvailability(self, email):
+        try:
+            user = User.objects.get(email=email)
+            return False
+        except Exception as e:
+            return True
+
+    def nicknameAvailability(self, nickname):
+        try:
+            user = User.objects.get(nickname=nickname)
+            return False
+        except Exception as e:
+            return True
+
     def generateCode(self, length=6, type=Type.GENERAL):
         code = ""
         for i in range(length):
@@ -122,6 +136,10 @@ class User(models.Model, Type):
                 del fields[fields.index(i)]
         if fields:
             raise MissFields(fields)
+        if not self.emailAvailability(data['email']):
+            raise RejectException(field='email', status=108)
+        if not self.nicknameAvailability(data['nickname']):
+            raise RejectException(field='nickname', status=107)
 
     def getInfo(self, type) -> dict:
         try:
@@ -138,13 +156,14 @@ class User(models.Model, Type):
             if type == self.PRIVATE:
                 self.last_seen = round(time.time() * 1000)
                 self.save()
+                dict['token'] = self.token
                 dict['starredRecipes'] = self.starredRecipes
                 dict['bannedRecipes'] = self.bannedRecipes
                 dict['starredIngredients'] = self.starredIngredients
                 dict['bannedIngredients'] = self.bannedIngredients
                 dict['fridge'] = self.fridge
                 dict['forums'] = self.forums
-                dict['ownRecipes'] = []
+                dict['ownRecipes'] = self.ownRecipes
                 for id in self.ownRecipes.split():
                     recipe = Recipe.objects.get(id=int(id))
                     dict['ownRecipes'].append(recipe.getInfo())
@@ -153,27 +172,20 @@ class User(models.Model, Type):
             return {'message': str(e), 'status': -1}
 
     def register(self, data):
-        try:
-            self.validateData(data)
-            self.name = data['name']
-            self.nickname = data['nickname']
-            self.surname = data['surname']
-            self.email = data['email']
-            self.last_seen = round(time.time() * 1000)
-            self.setPassword(data['password'])
-            self.generateToken(data)
-            info = {}
-            info['user'] = self.getInfo(Type.PRIVATE)
-            info['user']['token'] = self.token
-            info['status'] = 1
-            info['message'] = 'Registered'
-            return info
-        except UnknownField as e:
-            return {'message': str(e), 'field': e.unknownField(), 'status': -1, 'user': {}}
-        except MissFields as e:
-            return {'message': str(e), 'fields': e.missedFields(), 'status': -1, 'user': {}}
-        except Exception as e:
-            return {'message': str(e), 'status': -1, 'user': {}}
+        self.validateData(data)
+        self.name = data['name']
+        self.nickname = data['nickname']
+        self.surname = data['surname']
+        self.email = data['email']
+        self.last_seen = round(time.time() * 1000)
+        self.setPassword(data['password'])
+        self.generateToken(data)
+        info = {}
+        info['user'] = self.getInfo(Type.PRIVATE)
+        info['user']['token'] = self.token
+        info['status'] = 1
+        info['message'] = 'Registered'
+        return info
 
     def preDelete(self):
         if not self.deleted:
@@ -198,7 +210,7 @@ class User(models.Model, Type):
             response = {"message": "Products added", "status": 1}
         except:
             response = {"message": "Wrong product id", "status": -1}
-        response['user'] = ''
+        response['user'] = {}
         return response
 
     def deleteFromFridge(self, products):
@@ -215,7 +227,7 @@ class User(models.Model, Type):
             response = {"message": "Products deleted", "status": 1}
         except:
             response = {"message": "Wrong product id", "status": -1}
-        response['user'] = ''
+        response['user'] = {}
         return response
 
     def unblockIngredient(self, i):
@@ -231,7 +243,7 @@ class User(models.Model, Type):
             response = {"message": "Product unblocked", "status": 1}
         except:
             response = {"message": "Wrong product id", "status": -1}
-        response['user'] = ''
+        response['user'] = {}
         return response
 
     def banIngredient(self, i):
@@ -247,7 +259,7 @@ class User(models.Model, Type):
             response = {"message": "Product banned", "status": 1}
         except:
             response = {"message": "Wrong product id", "status": -1}
-        response['user'] = ''
+        response['user'] = {}
         return response
 
     def banRecipe(self, recipeId):
@@ -262,7 +274,7 @@ class User(models.Model, Type):
             response = {"message": "Recipe banned", "status": 1}
         except:
             response = {"message": "Wrong recipe id", "status": -1}
-        response['user'] = ''
+        response['user'] = {}
         return response
 
     def unblockRecipe(self, recipeId):
@@ -277,7 +289,7 @@ class User(models.Model, Type):
             response = {"message": "Recipe unblocked", "status": 1}
         except:
             response = {"message": "Wrong recipe id", "status": -1}
-        response['user'] = ''
+        response['user'] = {}
         return response
 
     def unstarIngredient(self, products):
@@ -294,7 +306,7 @@ class User(models.Model, Type):
             response = {"message": "Products deleted from starred", "status": 1}
         except:
             response = {"message": "Wrong product id", "status": -1}
-        response['user'] = ''
+        response['user'] = {}
         return response
 
     def starIngredient(self, i):
@@ -311,7 +323,7 @@ class User(models.Model, Type):
             response = {"message": "Product starred", "status": 1}
         except:
             response = {"message": "Wrong product id", "status": -1}
-        response['user'] = ''
+        response['user'] = {}
         return response
 
     def starRecipe(self, recipeId):
@@ -327,7 +339,7 @@ class User(models.Model, Type):
             response = {"message": "Recipe starred", "status": 1}
         except:
             response = {"message": "Wrong recipe id", "status": -1}
-        response['user'] = ''
+        response['user'] = {}
         return response
 
     def unstarRecipe(self, recipeId):
@@ -343,7 +355,7 @@ class User(models.Model, Type):
             response = {"message": "Recipe unblocked", "status": 1}
         except:
             response = {"message": "Wrong recipe id", "status": -1}
-        response['user'] = ''
+        response['user'] = {}
         return response
 
 
