@@ -85,13 +85,14 @@ def changePassword(request):
         user = User.objects.get(token=token)
 
         if user.validatePassword(old_password):
+            user.passwordAvailability(new_password)
             user.generateToken(user.getInfo(1))
             user.setPassword(new_password)
             userInfo = user.getInfo(Type.PRIVATE)
             raise SuccessException(message='Password changed')
         else:
             raise ModelException(status=102,
-                           message='Wrong password')
+                                 message='Wrong password')
 
     except SuccessException as e:
         status = int(e)
@@ -251,7 +252,7 @@ def delete(request):
             raise SuccessException(message='User deleted')
         else:
             raise ModelException(message='Wrong password',
-                           status=102)
+                                 status=102)
 
     except SuccessException as e:
         status = int(e)
@@ -663,7 +664,7 @@ def recoveryPasswordGet(request):
         if st:
             raise SuccessException(message='Password changed')
         else:
-            raise Exception('Mail not sent')
+            raise Exception('Recovery code has not been sent')
 
     except SuccessException as e:
         status = int(e)
@@ -688,6 +689,7 @@ def recoveryPasswordGet(request):
     response['status'] = status
     response['user'] = userInfo
     return JsonResponse(response)
+
 
 @csrf_exempt
 def recoveryPasswordPost(request):
@@ -740,4 +742,3 @@ def recoveryPasswordPost(request):
     response['status'] = status
     response['user'] = userInfo
     return JsonResponse(response)
-

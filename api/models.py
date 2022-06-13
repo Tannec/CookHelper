@@ -54,6 +54,15 @@ class User(models.Model, Type):
         self.token = tt
         self.save()
 
+    def passwordAvailability(self, password):
+        if len(password) < 8:
+            raise ModelException(message='Password must be at least 8 symbols', status=109)
+        with open('rejected_passwords.p') as t:
+            passwords = t.readlines()
+            for _ in passwords:
+                if _ in password:
+                    raise ModelException(message='Simple password', status=109)
+
     def emailAvailability(self, email):
         try:
             user = User.objects.get(email=email)
@@ -144,6 +153,7 @@ class User(models.Model, Type):
 
     def register(self, data):
         self.validateData(data)
+        self.passwordAvailability(password=data['password'])
         self.name = data['name']
         self.nickname = data['nickname']
         self.surname = data['surname']
