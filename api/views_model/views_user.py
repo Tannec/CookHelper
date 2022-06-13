@@ -100,7 +100,7 @@ def changePassword(request):
         status = int(e)
         message = str(e)
     except User.DoesNotExist as e:
-        status = 101
+        status = 102
         message = str(e)
     except PermissionException as e:
         message = str(e)

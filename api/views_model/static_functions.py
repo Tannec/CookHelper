@@ -91,7 +91,7 @@ class SuccessException(Exception):
     status = 100
 
     def __init__(self, message='', status=100):
-        super(ModelException, self).__init__()
+        super(SuccessException, self).__init__()
         self.status = status
         self.message = message
 
