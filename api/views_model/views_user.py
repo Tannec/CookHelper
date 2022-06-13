@@ -689,7 +689,7 @@ def recoveryPasswordGet(request):
     response['user'] = userInfo
     return JsonResponse(response)
 
-
+@csrf_exempt
 def recoveryPasswordPost(request):
     code = clear(request.POST.get('code', None))
     login = clear(request.POST.get('login', None))
