@@ -339,17 +339,30 @@ def setAvatar(request):
     userInfo = {}
 
     try:
-
         if token is None:
             raise FieldRequiredException(field='token')
-        image = request.FILES['image']
+
+        image = request.FILES['avatar']
         user = User.objects.get(token=token)
+
         user.setAvatar(image)
-        response = {"message": "Avatar uploaded", "status": 1, 'user': {}}
+        raise SuccessException(message='Avatar uploaded')
+    except SuccessException as e:
+        message = str(e)
+        status = int(e)
+    except User.DoesNotExist as e:
+        message = str(e)
+        status = 101
+    except FieldRequiredException as e:
+        message = str(e)
+        status = int(e)
     except Exception as e:
-        response = {"message": "Wrong params", "exception": str(e), "status": -1, 'user': {}}
+        message = str(e)
+        status = 199
 
-
+    response['message'] = message
+    response['status'] = status
+    response['user'] = userInfo
     return JsonResponse(response)
 
 

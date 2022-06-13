@@ -138,7 +138,6 @@ class User(models.Model, Type):
                 for id in self.ownRecipes.split():
                     recipe = Recipe.objects.get(id=int(id))
                     dict['ownRecipes'].append(recipe.getInfo())
-                dict['ownRecipes'] = " ".join(dict['ownRecipes'])
             return dict
         except Exception as e:
             return {'message': str(e), 'status': -1}
