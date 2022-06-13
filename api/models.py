@@ -7,7 +7,7 @@ from django.db.models import *
 from werkzeug.security import *
 import datetime
 from cookhelper.settings import SECRET_KEY, STATICFILES_DIRS, MEDIA_ROOT
-from views_model.static_functions import *
+from api.views_model.static_functions import *
 
 
 # models: Recipe, User, Forum, Ingredient, Dialog
