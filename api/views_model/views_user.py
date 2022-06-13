@@ -6,7 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework import generics
 from api.post_service.service import sendVerificationMail, sendRecoveryMail
 from static_functions import *
-from api.models import User, Type
+from api.models import User, Typesd
 
 
 @csrf_exempt
