@@ -87,10 +87,10 @@ def changePassword(request):
         if user.validatePassword(old_password):
             user.generateToken(user.getInfo(1))
             user.setPassword(new_password)
-            SuccessException(message='Password changed')
             userInfo = user.getInfo(Type.PRIVATE)
+            raise SuccessException(message='Password changed')
         else:
-            ModelException(status=102,
+            raise ModelException(status=102,
                            message='Wrong password')
 
     except SuccessException as e:
@@ -141,9 +141,9 @@ def register(request):
 
         state = sendVerificationMail(code=code, email=user.email, name=user.name)
         if state is True:
-            SuccessException(message='Registered')
+            raise SuccessException(message='Registered')
         else:
-            SuccessException(message='Code has not been sent')
+            raise SuccessException(message='Code has not been sent')
 
     except SuccessException as e:
         status = int(e)
@@ -202,7 +202,7 @@ def info(request):
             raise PermissionException()
         else:
             userInfo[field] = info[field]
-            SuccessException(message='Field permitted')
+            raise SuccessException(message='Field permitted')
 
     except SuccessException as e:
         status = int(e)
@@ -250,7 +250,7 @@ def delete(request):
             user.preDelete()
             raise SuccessException(message='User deleted')
         else:
-            ModelException(message='Wrong password',
+            raise ModelException(message='Wrong password',
                            status=102)
 
     except SuccessException as e:
@@ -341,7 +341,7 @@ def setAvatar(request):
     try:
 
         if token is None:
-            FieldRequiredException(field='token')
+            raise FieldRequiredException(field='token')
         image = request.FILES['image']
         user = User.objects.get(token=token)
         user.setAvatar(image)
