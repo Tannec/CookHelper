@@ -122,7 +122,7 @@ def changePassword(request):
 @csrf_exempt
 def register(request):
     data = clear(request.POST.dict())
-    return JsonResponse({'message': f'{data}', 'status': 199, 'user': {}})
+
     userInfo = {}
     response = {}
     message = 'Exception'
