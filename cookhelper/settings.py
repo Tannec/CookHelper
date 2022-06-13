@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-95^31khklemd%3olz8-w-h1j6y6n5e_=-3-92zjjz1@n4n4*vk
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['127.0.0.1', 'cookhelper.herokuapp.com']
+ALLOWED_HOSTS = ['127.0.0.1', 'cook-helper-itl.herokuapp.com']
 
 
 # Application definition
