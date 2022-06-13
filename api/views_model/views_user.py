@@ -689,25 +689,25 @@ def recoveryPasswordGet(request):
     response['user'] = userInfo
     return JsonResponse(response)
 
+
 def recoveryPasswordPost(request):
     code = clear(request.POST.get('code', None))
     login = clear(request.POST.get('login', None))
     password = clear(request.POST.get('password', None))
+
     response = {}
     userInfo = {}
     try:
         if code is None:
-            status = 104
-            raise Exception('Code required')
+            raise FieldRequiredException('Code')
         if login is None:
-            status = 104
-            raise Exception('Login (email or nickname) required')
+            raise FieldRequiredException('Login (email or nickname)')
         if password is None:
-            status = 104
-            raise Exception('New password required')
+            raise FieldRequiredException('New password')
+
         user = User.objects.get(Q(email=login) | Q(nickname=login))
-        st = (user.recoveryCode == code)
-        if st:
+
+        if user.recoveryCode == code:
             user.setPassword(password)
             user.generateToken(user.getInfo(Type.PRIVATE))
             user.recoveryCode = ""
@@ -716,6 +716,7 @@ def recoveryPasswordPost(request):
             raise SuccessException(message='Password changed')
         else:
             raise ModelException(message='Wrong code', status=102)
+
     except SuccessException as e:
         status = int(e)
         message = str(e)
