@@ -12,13 +12,24 @@ from api.views_model.static_functions import *
 
 # models: Recipe, User, Forum, Ingredient, Dialog
 
+def user_upload_to_path(instance, filename):
+    return f'{MEDIA_ROOT}/users/{instance.id}/{filename}'
+
+
+def recipe_upload_to_path(instance, filename):
+    return f'{MEDIA_ROOT}/recipes/{instance.id}/{filename}'
+
+
+def forum_upload_to_path(instance, filename):
+    return f'{MEDIA_ROOT}/forum/{instance.id}/{filename}'
+
 
 class User(models.Model, Type):
     name = CharField(max_length=40)
     surname = CharField(max_length=40)
     email = CharField(max_length=100, unique=True)
-    avatar = ImageField(upload_to=f'{MEDIA_ROOT}', default="")
     nickname = CharField(max_length=100, default="", unique=True)
+    avatar = ImageField(upload_to=user_upload_to_path, default="")
     last_seen = BigIntegerField(default=None)
     status = CharField(default="", max_length=200)
 
@@ -369,7 +380,6 @@ class Recipe(models.Model, Type):
         dict['userId'] = self.userId
         dict['deleted'] = self.deleted
         return dict
-
 
     def validateData(self, data):
         fields = ['title',
