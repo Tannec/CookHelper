@@ -6,7 +6,7 @@ from django.db import models
 from django.db.models import *
 from werkzeug.security import *
 import datetime
-from cookhelper.settings import SECRET_KEY, STATICFILES_DIRS, MEDIA_ROOT
+from cookhelper.settings import SECRET_KEY, STATICFILES_DIRS, MEDIA_ROOT, BASE_DIR
 from api.views_model.static_functions import *
 
 
@@ -57,22 +57,15 @@ class User(models.Model, Type):
     def passwordAvailability(self, password):
         if len(password) < 8:
             raise ModelException(message='Password must be at least 8 symbols', status=109)
-        with open('rejected_passwords.p') as t:
+        with open(os.path.join(BASE_DIR, 'data\\rejected_passwords.p')) as t:
             passwords = t.readlines()
             for _ in passwords:
                 if _ in password:
-                    raise ModelException(message='Simple password', status=109)
+                    raise RejectException(message='Simple password', status=109)
 
-    def emailAvailability(self, email):
+    def loginAvailability(self, login):
         try:
-            user = User.objects.get(email=email)
-            return False
-        except Exception as e:
-            return True
-
-    def nicknameAvailability(self, nickname):
-        try:
-            user = User.objects.get(nickname=nickname)
+            user = User.objects.get(Q(email=login) | Q(nickname=login))
             return False
         except Exception as e:
             return True
@@ -116,9 +109,9 @@ class User(models.Model, Type):
                 del fields[fields.index(i)]
         if fields:
             raise MissFields(fields)
-        if not self.emailAvailability(data['email']):
+        if not self.loginAvailability(data['email']):
             raise RejectException(field='email', status=108)
-        if not self.nicknameAvailability(data['nickname']):
+        if not self.loginAvailability(data['nickname']):
             raise RejectException(field='nickname', status=107)
 
     def getInfo(self, type) -> dict:

@@ -49,7 +49,7 @@ class RejectException(Exception):
 
     def __init__(self, field='some field', status=110):
         super(RejectException, self).__init__()
-        self.field = field.capitalize
+        self.field = field.capitalize()
         self.status = status
 
     def __str__(self):

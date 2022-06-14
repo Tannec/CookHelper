@@ -161,6 +161,9 @@ def register(request):
     except FieldRequiredException as e:
         message = str(e)
         status = int(e)
+    except RejectException as e:
+        message = str(e)
+        status = int(e)
     except Exception as e:
         message = str(e)
         status = 199
@@ -371,89 +374,234 @@ def setAvatar(request):
 def fillFridge(request):
     products = clear(request.POST.get('products', None))
     token = clear(request.POST.get('token', None))
-    if token is None:
-        response = {"message": "Wrong token", "status": -1, 'user': {}}
-    else:
-        try:
-            user = User.objects.get(token=token)
-            if products is None:
-                response = {"message": "At least 1 product required", "status": -1, 'user': {}}
-            else:
-                response = user.fillFridge(products)
-        except Exception as e:
-            response = {"message": "Wrong token", "exception": str(e), "status": -1, 'user': {}}
+
+    response = {}
+    userInfo = {}
+
+    try:
+        if token is None:
+            raise FieldRequiredException('Token')
+        if products is None:
+            raise FieldRequiredException('Products')
+
+        user = User.objects.get(token=token)
+        response = user.deleteFromFridge(products)
+
+        if response['status'] == -1:
+            raise ModelException(message='Wrong products id', status=199)
+        else:
+            raise SuccessException(message='Products added to fridge')
+
+    except SuccessException as e:
+        status = int(e)
+        message = str(e)
+    except ModelException as e:
+        status = int(e)
+        message = str(e)
+    except User.DoesNotExist as e:
+        status = 101
+        message = str(e)
+    except PermissionException as e:
+        message = str(e)
+        status = int(e)
+    except FieldRequiredException as e:
+        message = str(e)
+        status = int(e)
+    except Exception as e:
+        message = str(e)
+        status = 199
+
+    response['message'] = message
+    response['status'] = status
+    response['user'] = userInfo
     return JsonResponse(response)
 
 
 @csrf_exempt
 def deleteFromFridge(request):
-    products = clear(request.POST.get('products', None))
+    product = clear(request.POST.get('id', None))
     token = clear(request.POST.get('token', None))
-    if token is None:
-        response = {"message": "Wrong token", "status": -1, 'user': {}}
-    else:
-        try:
-            user = User.objects.get(token=token)
-            if products is None:
-                response = {"message": "At least 1 product required", "status": -1, 'user': {}}
-            else:
-                response = user.deleteFromFridge(products)
-        except Exception as e:
-            response = {"message": "Wrong token", "exception": str(e), "status": -1, 'user': {}}
+
+    response = {}
+    userInfo = {}
+
+    try:
+        if token is None:
+            raise FieldRequiredException('Token')
+        if product is None:
+            raise FieldRequiredException('Product')
+
+        user = User.objects.get(token=token)
+        response = user.deleteFromFridge(product)
+
+        if response['status'] == -1:
+            raise ModelException(message='Wrong product id', status=199)
+        else:
+            raise SuccessException(message='Product deleted from fridge')
+
+    except SuccessException as e:
+        status = int(e)
+        message = str(e)
+    except ModelException as e:
+        status = int(e)
+        message = str(e)
+    except User.DoesNotExist as e:
+        status = 101
+        message = str(e)
+    except PermissionException as e:
+        message = str(e)
+        status = int(e)
+    except FieldRequiredException as e:
+        message = str(e)
+        status = int(e)
+    except Exception as e:
+        message = str(e)
+        status = 199
+
+    response['message'] = message
+    response['status'] = status
+    response['user'] = userInfo
     return JsonResponse(response)
 
 
 @csrf_exempt
 def banIngredient(request):
-    product = clear(request.POST.get('product', None))
+    product = clear(request.POST.get('id', None))
     token = clear(request.POST.get('token', None))
-    if token is None:
-        response = {"message": "Wrong token", "status": -1, 'user': {}}
-    else:
-        try:
-            user = User.objects.get(token=token)
-            if product is None:
-                response = {"message": "Product required", "status": -1, 'user': {}}
-            else:
-                response = user.banIngredient(product)
-        except Exception as e:
-            response = {"message": "Wrong token", "exception": str(e), "status": -1, 'user': {}}
+
+    response = {}
+    userInfo = {}
+
+    try:
+        if token is None:
+            raise FieldRequiredException('Token')
+        if product is None:
+            raise FieldRequiredException('Product')
+
+        user = User.objects.get(token=token)
+        response = user.banIngredient(product)
+
+        if response['status'] == -1:
+            raise ModelException(message='Wrong product id', status=199)
+        else:
+            raise SuccessException(message='Product blocked')
+
+    except SuccessException as e:
+        status = int(e)
+        message = str(e)
+    except ModelException as e:
+        status = int(e)
+        message = str(e)
+    except User.DoesNotExist as e:
+        status = 101
+        message = str(e)
+    except PermissionException as e:
+        message = str(e)
+        status = int(e)
+    except FieldRequiredException as e:
+        message = str(e)
+        status = int(e)
+    except Exception as e:
+        message = str(e)
+        status = 199
+
+    response['message'] = message
+    response['status'] = status
+    response['user'] = userInfo
     return JsonResponse(response)
 
 
 @csrf_exempt
 def unblockIngredient(request):
-    product = clear(request.POST.get('product', None))
+    product = clear(request.POST.get('id', None))
     token = clear(request.POST.get('token', None))
-    if token is None:
-        response = {"message": "Wrong token", "status": -1, 'user': {}}
-    else:
-        try:
-            user = User.objects.get(token=token)
-            if product is None:
-                response = {"message": "Product required", "status": -1, 'user': {}}
-            else:
-                response = user.unblockIngredient(product)
-        except Exception as e:
-            response = {"message": "Wrong token", "exception": str(e), "status": -1, 'user': {}}
+
+    response = {}
+    userInfo = {}
+
+    try:
+        if token is None:
+            raise FieldRequiredException('Token')
+        if product is None:
+            raise FieldRequiredException('Product')
+
+        user = User.objects.get(token=token)
+        response = user.unblockIngredient(product)
+
+        if response['status'] == -1:
+            raise ModelException(message='Wrong product id', status=199)
+        else:
+            raise SuccessException(message='Product unblocked')
+
+    except SuccessException as e:
+        status = int(e)
+        message = str(e)
+    except ModelException as e:
+        status = int(e)
+        message = str(e)
+    except User.DoesNotExist as e:
+        status = 101
+        message = str(e)
+    except PermissionException as e:
+        message = str(e)
+        status = int(e)
+    except FieldRequiredException as e:
+        message = str(e)
+        status = int(e)
+    except Exception as e:
+        message = str(e)
+        status = 199
+
+    response['message'] = message
+    response['status'] = status
+    response['user'] = userInfo
     return JsonResponse(response)
 
 
 @csrf_exempt
 def banRecipe(request):
-    recipe = clear(request.POST.get('recipe', None))
+    recipe = clear(request.POST.get('id', None))
     token = clear(request.POST.get('token', None))
-    if token is None:
-        response = {"message": "Wrong token", "status": -1, 'user': {}}
-    else:
-        try:
-            user = User.objects.get(token=token)
-            if recipe is None:
-                response = {"message": "Recipe required", "status": -1, 'user': {}}
-            else:
-                response = user.banRecipe(recipe)
-        except Exception as e:
-            response = {"message": "Wrong token", "exception": str(e), "status": -1, 'user': {}}
+
+    response = {}
+    userInfo = {}
+
+    try:
+        if token is None:
+            raise FieldRequiredException('Token')
+        if recipe is None:
+            raise FieldRequiredException('Recipe')
+
+        user = User.objects.get(token=token)
+        response = user.banRecipe(recipe)
+
+        if response['status'] == -1:
+            raise ModelException(message='Wrong recipe id', status=199)
+        else:
+            raise SuccessException(message='Recipe blocked')
+
+    except SuccessException as e:
+        status = int(e)
+        message = str(e)
+    except ModelException as e:
+        status = int(e)
+        message = str(e)
+    except User.DoesNotExist as e:
+        status = 101
+        message = str(e)
+    except PermissionException as e:
+        message = str(e)
+        status = int(e)
+    except FieldRequiredException as e:
+        message = str(e)
+        status = int(e)
+    except Exception as e:
+        message = str(e)
+        status = 199
+
+    response['message'] = message
+    response['status'] = status
+    response['user'] = userInfo
     return JsonResponse(response)
 
 
@@ -461,80 +609,140 @@ def banRecipe(request):
 def unblockRecipe(request):
     recipe = clear(request.POST.get('id', None))
     token = clear(request.POST.get('token', None))
-    status = 101
+
+    response = {}
+    userInfo = {}
+
     try:
         if token is None:
-            status = 104
-            raise Exception('Token required')
+            raise FieldRequiredException('Token')
         if recipe is None:
-            status = 104
-            raise Exception('Product id required')
+            raise FieldRequiredException('Recipe')
 
         user = User.objects.get(token=token)
         response = user.unblockRecipe(recipe)
 
         if response['status'] == -1:
-            status = 102
+            raise ModelException(message='Wrong recipe id', status=199)
         else:
-            status = 100
+            raise SuccessException(message='Recipe unblocked')
 
+    except SuccessException as e:
+        status = int(e)
+        message = str(e)
+    except ModelException as e:
+        status = int(e)
+        message = str(e)
+    except User.DoesNotExist as e:
+        status = 101
+        message = str(e)
+    except PermissionException as e:
+        message = str(e)
+        status = int(e)
+    except FieldRequiredException as e:
+        message = str(e)
+        status = int(e)
     except Exception as e:
-        response = {"message": str(e), 'user': {}}
+        message = str(e)
+        status = 199
+
+    response['message'] = message
     response['status'] = status
+    response['user'] = userInfo
     return JsonResponse(response)
 
 
 @csrf_exempt
 def starIngredient(request):
-    status = 101
     product = clear(request.POST.get('id', None))
     token = clear(request.POST.get('token', None))
+
+    response = {}
+    userInfo = {}
+
     try:
         if token is None:
-            status = 104
-            raise Exception('Token required')
+            raise FieldRequiredException('Token')
         if product is None:
-            status = 104
-            raise Exception('Product id required')
-
-        user = User.objects.get(token=token)
-        response = user.starIngredient(product)
-
-        if response['status'] == -1:
-            status = 102
-        else:
-            status = 100
-
-    except Exception as e:
-        response = {"message": str(e), 'user': {}}
-    response['status'] = status
-    return JsonResponse(response)
-
-
-@csrf_exempt
-def unstarIngredient(request):
-    status = 101
-    product = clear(request.POST.get('id', None))
-    token = clear(request.POST.get('token', None))
-    try:
-        if token is None:
-            status = 104
-            raise Exception('Token required')
-        if product is None:
-            status = 104
-            raise Exception('Product id required')
+            raise FieldRequiredException('Product')
 
         user = User.objects.get(token=token)
         response = user.unstarIngredient(product)
 
         if response['status'] == -1:
-            status = 102
+            raise ModelException(message='Wrong product id', status=199)
         else:
-            status = 100
+            raise SuccessException(message='Product added to starred')
 
+    except SuccessException as e:
+        status = int(e)
+        message = str(e)
+    except ModelException as e:
+        status = int(e)
+        message = str(e)
+    except User.DoesNotExist as e:
+        status = 101
+        message = str(e)
+    except PermissionException as e:
+        message = str(e)
+        status = int(e)
+    except FieldRequiredException as e:
+        message = str(e)
+        status = int(e)
     except Exception as e:
-        response = {'message': str(e), 'user': {}}
+        message = str(e)
+        status = 199
+
+    response['message'] = message
     response['status'] = status
+    response['user'] = userInfo
+    return JsonResponse(response)
+
+
+@csrf_exempt
+def unstarIngredient(request):
+    product = clear(request.POST.get('id', None))
+    token = clear(request.POST.get('token', None))
+
+    response = {}
+    userInfo = {}
+
+    try:
+        if token is None:
+            raise FieldRequiredException('Token')
+        if product is None:
+            raise FieldRequiredException('Product')
+
+        user = User.objects.get(token=token)
+        response = user.unstarIngredient(product)
+
+        if response['status'] == -1:
+            raise ModelException(message='Wrong product id', status=199)
+        else:
+            raise SuccessException(message='Product removed from starred')
+
+    except SuccessException as e:
+        status = int(e)
+        message = str(e)
+    except ModelException as e:
+        status = int(e)
+        message = str(e)
+    except User.DoesNotExist as e:
+        status = 101
+        message = str(e)
+    except PermissionException as e:
+        message = str(e)
+        status = int(e)
+    except FieldRequiredException as e:
+        message = str(e)
+        status = int(e)
+    except Exception as e:
+        message = str(e)
+        status = 199
+
+    response['message'] = message
+    response['status'] = status
+    response['user'] = userInfo
     return JsonResponse(response)
 
 
@@ -542,28 +750,46 @@ def unstarIngredient(request):
 def starRecipe(request):
     recipe = clear(request.POST.get('id', None))
     token = clear(request.POST.get('token', None))
-    status = 101
-    try:
 
+    response = {}
+    userInfo = {}
+
+    try:
         if token is None:
-            status = 104
-            raise Exception('Token required')
+            raise FieldRequiredException('Token')
         if recipe is None:
-            status = 104
-            raise Exception('Recipe id required')
+            raise FieldRequiredException('Recipe')
 
         user = User.objects.get(token=token)
         response = user.starRecipe(recipe)
 
         if response['status'] == -1:
-            status = 102
+            raise ModelException(message='Wrong recipe id', status=199)
         else:
-            status = 100
+            raise SuccessException(message='Recipe added to starred')
 
+    except SuccessException as e:
+        status = int(e)
+        message = str(e)
+    except ModelException as e:
+        status = int(e)
+        message = str(e)
+    except User.DoesNotExist as e:
+        status = 101
+        message = str(e)
+    except PermissionException as e:
+        message = str(e)
+        status = int(e)
+    except FieldRequiredException as e:
+        message = str(e)
+        status = int(e)
     except Exception as e:
-        response = {'message': str(e)}
+        message = str(e)
+        status = 199
+
+    response['message'] = message
     response['status'] = status
-    response['user'] = {}
+    response['user'] = userInfo
     return JsonResponse(response)
 
 
@@ -571,26 +797,46 @@ def starRecipe(request):
 def unstarRecipe(request):
     recipe = clear(request.POST.get('id', None))
     token = clear(request.POST.get('token', None))
-    status = 101
+
+    response = {}
+    userInfo = {}
+
     try:
         if token is None:
-            status = 104
-            raise Exception('Token requied')
+            raise FieldRequiredException('Token')
         if recipe is None:
-            status = 104
-            raise Exception('Recipe id required')
+            raise FieldRequiredException('Recipe')
 
         user = User.objects.get(token=token)
         response = user.unstarRecipe(recipe)
 
         if response['status'] == -1:
-            status = 102
+            raise ModelException(message='Wrong recipe id', status=199)
         else:
-            status = 100
+            raise SuccessException(message='Recipe removed from starred')
 
+    except SuccessException as e:
+        status = int(e)
+        message = str(e)
+    except ModelException as e:
+        status = int(e)
+        message = str(e)
+    except User.DoesNotExist as e:
+        status = 101
+        message = str(e)
+    except PermissionException as e:
+        message = str(e)
+        status = int(e)
+    except FieldRequiredException as e:
+        message = str(e)
+        status = int(e)
     except Exception as e:
-        response = {'message': str(e), 'user': {}}
+        message = str(e)
+        status = 199
+
+    response['message'] = message
     response['status'] = status
+    response['user'] = userInfo
     return JsonResponse(response)
 
 
@@ -598,32 +844,55 @@ def unstarRecipe(request):
 def verifyUser(request):
     code = clear(request.POST.get('code', None))
     token = clear(request.POST.get('token', None))
-    status = 101
+
+    response = {}
+    userInfo = {}
+
     try:
         if token is None:
-            status = 104
-            raise Exception('Token required')
+            raise FieldRequiredException('Token')
         if code is None:
-            status = 104
-            raise Exception('Code required')
+            raise FieldRequiredException('Code')
 
         user = User.objects.get(token=token)
 
         if user.verifyCode(code):
-            status = 100
-            response = {'message': 'Account verified', 'user': user.getInfo(Type.PRIVATE)}
+            userInfo = user.getInfo(Type.PRIVATE)
+            raise SuccessException(message='Account verified')
         else:
-            status = 102
-            response = {'message': 'Wrong code', 'user': {}}
+            raise ModelException(message='Wrong code', status=102)
+
+    except SuccessException as e:
+        status = int(e)
+        message = str(e)
+    except ModelException as e:
+        status = int(e)
+        message = str(e)
+    except User.DoesNotExist as e:
+        status = 101
+        message = str(e)
+    except PermissionException as e:
+        message = str(e)
+        status = int(e)
+    except FieldRequiredException as e:
+        message = str(e)
+        status = int(e)
     except Exception as e:
-        response = {'message': str(e), 'user': {}}
+        message = str(e)
+        status = 199
+
+    response['message'] = message
     response['status'] = status
+    response['user'] = userInfo
     return JsonResponse(response)
 
 
 def verificationCode(request):
     token = request.GET.get('token', None)
-    status = 101
+
+    response = {}
+    userInfo = {}
+
     try:
         if token is None:
             raise Exception('Token required')
@@ -633,16 +902,32 @@ def verificationCode(request):
         code = user.generateCode()
 
         if sendVerificationMail(code=code, email=user.email, name=user.name):
-            status = 100
-            response = {'message': 'Verification code has been sent'}
+            raise SuccessException(message='Verification code has been sent')
         else:
-            status = 199
-            response = {'message': 'Verification code has not been sent'}
+            raise ModelException(message='Verification code has not been sent', status=199)
+
+    except SuccessException as e:
+        status = int(e)
+        message = str(e)
+    except ModelException as e:
+        status = int(e)
+        message = str(e)
+    except User.DoesNotExist as e:
+        status = 101
+        message = str(e)
+    except PermissionException as e:
+        message = str(e)
+        status = int(e)
+    except FieldRequiredException as e:
+        message = str(e)
+        status = int(e)
     except Exception as e:
+        message = str(e)
         status = 199
-        response = {'message': str(e)}
+
+    response['message'] = message
     response['status'] = status
-    response['user'] = {}
+    response['user'] = userInfo
     return JsonResponse(response)
 
 
@@ -742,3 +1027,27 @@ def recoveryPasswordPost(request):
     response['status'] = status
     response['user'] = userInfo
     return JsonResponse(response)
+
+
+def check_login(request):
+    login = request.GET.get('login', None)
+
+    response = {}
+
+    try:
+        user = User.objects.get(Q(email=login) | Q(nickname=login))
+        if user.nickname == login:
+            raise RejectException(field='nickname', status=107)
+        else:
+            raise RejectException(field='email', status=108)
+    except User.DoesNotExist:
+        message = 'Login available'
+        status = 100
+    except RejectException as e:
+        message = str(e)
+        status = int(e)
+
+    response['message'] = message
+    response['status'] = status
+    return JsonResponse(response)
+
